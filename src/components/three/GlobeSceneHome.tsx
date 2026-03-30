@@ -3,9 +3,7 @@
 import { useEffect, useRef, useState, useCallback } from 'react'
 import * as THREE from 'three'
 import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls.js'
-import { useRouter } from 'next/navigation'
 import { PIN_COORDINATES, type CountryId } from '@/data/pin-coordinates'
-import Header from '@/components/common/Header'
 import { fetchAllDriveImages, type DriveImage } from '@/lib/google-drive'
 
 // --- Photo positions: オリジナル12枠 ---
@@ -33,18 +31,6 @@ const PIN_HEIGHT = 0.28
 const PIN_RADIUS = 0.025
 const PIN_HEAD_RADIUS = 0.07
 const ASIA_TARGET_ROT_Y = -3.44
-const TOTAL_DURATION = 3500
-
-// --- Easing ---
-function easeInOutQuart(t: number) {
-  return t < 0.5 ? 8 * t * t * t * t : 1 - Math.pow(-2 * t + 2, 4) / 2
-}
-function easeInQuad(t: number) {
-  return t * t
-}
-function easeInOutSine(t: number) {
-  return -(Math.cos(Math.PI * t) - 1) / 2
-}
 
 // --- Helpers ---
 function latLngToPosition(lat: number, lng: number, radius: number): THREE.Vector3 {
@@ -64,7 +50,6 @@ function createPinMesh(lat: number, lng: number, id: string): THREE.Group {
   const surfacePos = latLngToPosition(lat, lng, EARTH_RADIUS)
   const normal = surfacePos.clone().normalize()
 
-  // Stem — silver metallic needle
   const stemGeo = new THREE.CylinderGeometry(PIN_RADIUS * 0.3, PIN_RADIUS, PIN_HEIGHT, 8)
   const stemMat = new THREE.MeshStandardMaterial({
     color: 0xffffff, metalness: 0.3, roughness: 0.1,
@@ -74,7 +59,6 @@ function createPinMesh(lat: number, lng: number, id: string): THREE.Group {
   stem.position.set(0, PIN_HEIGHT / 2, 0)
   group.add(stem)
 
-  // Head — classic red sphere
   const headGeo = new THREE.SphereGeometry(PIN_HEAD_RADIUS, 16, 16)
   const headMat = new THREE.MeshStandardMaterial({
     color: 0xdd2222, metalness: 0.2, roughness: 0.35,
@@ -84,7 +68,6 @@ function createPinMesh(lat: number, lng: number, id: string): THREE.Group {
   head.position.set(0, PIN_HEIGHT + PIN_HEAD_RADIUS * 0.5, 0)
   group.add(head)
 
-  // Subtle glow ring under pin
   const ringGeo = new THREE.RingGeometry(PIN_HEAD_RADIUS * 0.8, PIN_HEAD_RADIUS * 1.6, 32)
   const ringMat = new THREE.MeshBasicMaterial({
     color: 0xdd2222, transparent: true, opacity: 0.1, side: THREE.DoubleSide,
@@ -94,7 +77,6 @@ function createPinMesh(lat: number, lng: number, id: string): THREE.Group {
   ring.rotation.x = -Math.PI / 2
   group.add(ring)
 
-  // [3] Hit area — nearly invisible but raycaster-visible
   const hitGeo = new THREE.SphereGeometry(PIN_HEAD_RADIUS * 3, 8, 8)
   const hitMat = new THREE.MeshBasicMaterial({
     transparent: true, opacity: 0.001, depthWrite: false, side: THREE.DoubleSide,
@@ -103,7 +85,6 @@ function createPinMesh(lat: number, lng: number, id: string): THREE.Group {
   hitArea.position.set(0, PIN_HEIGHT * 0.5, 0)
   group.add(hitArea)
 
-  // Position & orient
   group.position.copy(surfacePos)
   group.lookAt(surfacePos.clone().add(normal))
   group.rotateX(Math.PI / 2)
@@ -135,7 +116,6 @@ type SceneRefs = {
   earth: THREE.Mesh
   pinGroups: Map<CountryId, THREE.Group>
   autoRotate: boolean
-  isZooming: boolean
   animationId: number
   selectedPinId: CountryId | null
 }
@@ -204,7 +184,6 @@ function PhotoBurst({
     }
   }, [])
 
-  // ピンが変わるたびにランダムに20枚抽出（keyでremountされるので毎回実行）
   const [images] = useState(() => {
     const shuffled = [...pinImages].sort(() => Math.random() - 0.5)
     return shuffled.slice(0, 12)
@@ -213,7 +192,6 @@ function PhotoBurst({
 
   return (
     <div ref={wrapperRef}>
-      {/* Country label */}
       <div className="absolute top-[15%] left-1/2 -translate-x-1/2 z-30 text-center pointer-events-none" style={{ animation: 'fadeSlideIn 0.3s ease-out both' }}>
         <h3 className="text-2xl font-semibold tracking-[0.12em] text-[#0f172a]">
           {PIN_COORDINATES[selectedPin].labelJa}
@@ -223,7 +201,6 @@ function PhotoBurst({
         </p>
       </div>
 
-      {/* Scattered preview photos */}
       {!albumOpen && images.map((img, i) => {
         const pos = PHOTO_POSITIONS[i % PHOTO_POSITIONS.length]
         const style: React.CSSProperties = {
@@ -237,7 +214,6 @@ function PhotoBurst({
           transition: 'translate 0.25s ease-out, scale 0.25s ease-out',
         }
         const cls = "absolute z-20 rounded-xl overflow-hidden shadow-[0_6px_24px_rgba(15,23,42,0.15)] border-2 border-white"
-
         const inner = <img src={img.url} alt="" className="w-full h-full object-cover" loading="lazy" />
 
         if (img.permalink) {
@@ -254,7 +230,6 @@ function PhotoBurst({
         )
       })}
 
-      {/* もっと見る button */}
       {!albumOpen && pinImages.length > 0 && (
         <button
           onClick={() => setAlbumOpen(true)}
@@ -270,10 +245,8 @@ function PhotoBurst({
         </button>
       )}
 
-      {/* Album modal */}
       {albumOpen && (
         <div className="fixed inset-0 z-50 flex flex-col bg-[#f8fafc]/95 backdrop-blur-md" style={{ animation: 'fadeSlideIn 0.3s ease-out both' }}>
-          {/* Album header */}
           <div className="flex items-center justify-between px-8 py-5 border-b border-[#e2e8f0]">
             <div>
               <h2 className="text-xl font-semibold tracking-[0.1em] text-[#0f172a]">
@@ -293,8 +266,6 @@ function PhotoBurst({
               <span className="text-[0.8rem] font-medium text-[#475569]">閉じる</span>
             </button>
           </div>
-
-          {/* Scrollable grid */}
           <div className="flex-1 overflow-y-auto px-8 py-6">
             <div className="grid grid-cols-[repeat(auto-fill,minmax(220px,1fr))] gap-4 max-w-[1400px] mx-auto">
               {pinImages.map((img, i) => (
@@ -304,12 +275,7 @@ function PhotoBurst({
                   style={{ animation: `fadeSlideIn 0.35s ease-out ${Math.min(i * 0.03, 1)}s both` }}
                 >
                   <div className="aspect-[4/3]">
-                    <img
-                      src={img.url}
-                      alt=""
-                      className="w-full h-full object-cover"
-                      loading="lazy"
-                    />
+                    <img src={img.url} alt="" className="w-full h-full object-cover" loading="lazy" />
                   </div>
                 </div>
               ))}
@@ -321,20 +287,16 @@ function PhotoBurst({
   )
 }
 
-export default function GlobeScene() {
+// --- Main component: starts in post-animation state ---
+export default function GlobeSceneHome() {
   const containerRef = useRef<HTMLDivElement>(null)
   const sceneRef = useRef<SceneRefs | null>(null)
-  const [phase, setPhase] = useState<'idle' | 'zooming' | 'interactive'>('idle')
-  const [headerVisible, setHeaderVisible] = useState(false)
   const [selectedPin, setSelectedPin] = useState<CountryId | null>(null)
-  const [textOpacity, setTextOpacity] = useState(1)
-  const [whiteOverlay, setWhiteOverlay] = useState(0)
-  const [showClickHint, setShowClickHint] = useState(false)
+  const [showClickHint, setShowClickHint] = useState(true)
   const [driveImages, setDriveImages] = useState<Record<string, DriveImage[]>>({})
-  const [driveLoading, setDriveLoading] = useState(false)
-  const router = useRouter()
+  const [driveLoading, setDriveLoading] = useState(true)
 
-  // --- Init ---
+  // --- Init scene in post-animation state ---
   const initScene = useCallback(() => {
     if (!containerRef.current) return
     const container = containerRef.current
@@ -342,10 +304,8 @@ export default function GlobeScene() {
     const h = container.clientHeight
 
     const scene = new THREE.Scene()
-    // No scene.background — alpha renderer on white page
-
     const camera = new THREE.PerspectiveCamera(45, w / h, 0.1, 1000)
-    camera.position.set(0, 0, 10)
+    camera.position.set(0, 0, 12.62)
 
     const renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true })
     renderer.setSize(w, h)
@@ -354,7 +314,6 @@ export default function GlobeScene() {
     renderer.toneMappingExposure = 1.2
     container.appendChild(renderer.domElement)
 
-    // OrbitControls
     const controls = new OrbitControls(camera, renderer.domElement)
     controls.enableDamping = true
     controls.dampingFactor = 0.06
@@ -364,7 +323,6 @@ export default function GlobeScene() {
     controls.maxDistance = 40
     controls.enablePan = false
 
-    // Earth — Blue Marble (same as output/index.html)
     const textureLoader = new THREE.TextureLoader()
     const earthTexture = textureLoader.load(
       'https://cdn.jsdelivr.net/npm/three-globe/example/img/earth-blue-marble.jpg'
@@ -374,30 +332,25 @@ export default function GlobeScene() {
     )
     const earthGeo = new THREE.SphereGeometry(EARTH_RADIUS, 64, 64)
     const earthMat = new THREE.MeshStandardMaterial({
-      map: earthTexture,
-      bumpMap: bumpTexture,
-      bumpScale: 0.3,
-      roughness: 0.7,
-      metalness: 0.1,
+      map: earthTexture, bumpMap: bumpTexture, bumpScale: 0.3, roughness: 0.7, metalness: 0.1,
     })
     const earth = new THREE.Mesh(earthGeo, earthMat)
-    // Disable raycast on earth sphere so it doesn't block pin clicks
     earth.raycast = () => {}
+
+    // Set to post-animation state
+    earth.rotation.y = ASIA_TARGET_ROT_Y
+    earth.rotation.x = -0.26
+    earth.position.y = -3.5
+
     scene.add(earth)
 
-    // Atmosphere
     const atmosGeo = new THREE.SphereGeometry(EARTH_RADIUS * 1.015, 64, 64)
     const atmosMat = new THREE.ShaderMaterial({
-      vertexShader: atmosVertexShader,
-      fragmentShader: atmosFragmentShader,
-      blending: THREE.AdditiveBlending,
-      side: THREE.BackSide,
-      transparent: true,
+      vertexShader: atmosVertexShader, fragmentShader: atmosFragmentShader,
+      blending: THREE.AdditiveBlending, side: THREE.BackSide, transparent: true,
     })
-    const atmosphere = new THREE.Mesh(atmosGeo, atmosMat)
-    earth.add(atmosphere)
+    earth.add(new THREE.Mesh(atmosGeo, atmosMat))
 
-    // Lights — matching output/index.html
     scene.add(new THREE.AmbientLight(0x404060, 1.8))
     const dirLight = new THREE.DirectionalLight(0xffffff, 2.5)
     dirLight.position.set(5, 3, 5)
@@ -406,38 +359,25 @@ export default function GlobeScene() {
     backLight.position.set(-5, -2, -5)
     scene.add(backLight)
 
-    // Pins — added as children of earth so they rotate with it
+    // Pins — visible from the start
     const pinGroups = new Map<CountryId, THREE.Group>()
     for (const [id, coord] of Object.entries(PIN_COORDINATES)) {
       const pin = createPinMesh(coord.lat, coord.lng, id)
-      pin.visible = false // hidden until zoom completes
+      pin.visible = true
       earth.add(pin)
       pinGroups.set(id as CountryId, pin)
     }
 
-    // Animation
     const refs: SceneRefs = {
-      scene,
-      camera,
-      renderer,
-      controls,
-      earth,
-      pinGroups,
-      autoRotate: true,
-      isZooming: false,
-      animationId: 0,
-      selectedPinId: null,
+      scene, camera, renderer, controls, earth, pinGroups,
+      autoRotate: false, animationId: 0, selectedPinId: null,
     }
     sceneRef.current = refs
 
     const animate = () => {
       refs.animationId = requestAnimationFrame(animate)
+      if (refs.autoRotate) earth.rotation.y += 0.0008
 
-      if (refs.autoRotate && !refs.isZooming) {
-        earth.rotation.y += 0.0008
-      }
-
-      // Pin glow pulse + selected pin highlight
       const time = Date.now() * 0.001
       const currentSelected = refs.selectedPinId
       pinGroups.forEach((group, pinId) => {
@@ -488,143 +428,12 @@ export default function GlobeScene() {
     return cleanup
   }, [initScene])
 
-  // Sync selectedPin to sceneRef for animation loop
   useEffect(() => {
-    if (sceneRef.current) {
-      sceneRef.current.selectedPinId = selectedPin
-    }
+    if (sceneRef.current) sceneRef.current.selectedPinId = selectedPin
   }, [selectedPin])
-
-  // --- GO ASIA! click ---
-  const handleGoAsia = useCallback(() => {
-    const refs = sceneRef.current
-    if (!refs || phase !== 'idle') return
-    setPhase('zooming')
-    refs.isZooming = true
-    refs.autoRotate = false
-    refs.controls.enabled = false
-
-    const { camera, earth, pinGroups } = refs
-
-    const startEarthRotY = earth.rotation.y
-    const startCamPos = camera.position.clone() // (0, 0, 9)
-    const endCamPos = new THREE.Vector3(0, 0, 17.5) // pulled back for interactive view
-
-    // Target rotation (shortest path to Asia)
-    let deltaRotY = ASIA_TARGET_ROT_Y - (startEarthRotY % (2 * Math.PI))
-    while (deltaRotY > Math.PI) deltaRotY -= 2 * Math.PI
-    while (deltaRotY < -Math.PI) deltaRotY += 2 * Math.PI
-
-    // Phase 1: Rotate to Asia + sink down + pull back (2.5s)
-    const PHASE1_DURATION = 2500
-    // Phase 2: Tilt up so equator is at screen bottom (1.5s)
-    const PHASE2_DURATION = 1500
-    const targetTiltX = -0.26 // tilt earth so lat -11° is at screen edge
-
-    const startTime = Date.now()
-
-    const phase1Animate = () => {
-      const elapsed = Date.now() - startTime
-      const rawT = Math.min(elapsed / PHASE1_DURATION, 1)
-
-      // Text fade out (0-15%)
-      const textT = Math.min(rawT / 0.15, 1)
-      setTextOpacity(1 - easeInOutSine(textT))
-
-      // Header fade in (30%+)
-      if (rawT > 0.3) {
-        setHeaderVisible(true)
-      }
-
-      const rotT = easeInOutQuart(rawT)
-
-      // Earth: rotate to Asia + sink down
-      earth.rotation.y = startEarthRotY + deltaRotY * rotT
-      earth.position.y = -3.5 * rotT
-
-      // Camera: pull back
-      camera.position.lerpVectors(startCamPos, endCamPos, rotT)
-      camera.lookAt(0, 0, 0)
-      refs.controls.target.set(0, 0, 0)
-
-      if (rawT < 1) {
-        requestAnimationFrame(phase1Animate)
-      } else {
-        // Phase 2: tilt earth upward
-        const phase2Start = Date.now()
-        const startRotX = earth.rotation.x
-        const phase2CamStart = camera.position.clone()
-        const phase2CamEnd = new THREE.Vector3(0, 0, 12.62) // zoom in (0.8x)
-
-        const phase2Animate = () => {
-          const dt = Math.min((Date.now() - phase2Start) / PHASE2_DURATION, 1)
-          const t = easeInOutQuart(dt)
-
-          earth.rotation.x = startRotX + targetTiltX * t
-          camera.position.lerpVectors(phase2CamStart, phase2CamEnd, t)
-          camera.lookAt(0, 0, 0)
-
-          if (dt < 1) {
-            requestAnimationFrame(phase2Animate)
-          } else {
-            // Phase 2 done — enable controls
-            refs.controls.target.set(0, 0, 0)
-            refs.controls.enabled = true
-
-            const pinEntries = Array.from(pinGroups.entries())
-            let idx = 0
-
-            const dropNextPin = () => {
-              if (idx < pinEntries.length) {
-                const [, group] = pinEntries[idx]
-                group.visible = true
-
-                group.children.forEach((child) => {
-                  child.scale.set(0.01, 0.01, 0.01)
-                })
-
-                const dropStart = Date.now()
-                const DROP_DURATION = 300
-                const animateDrop = () => {
-                  const dt2 = Math.min((Date.now() - dropStart) / DROP_DURATION, 1)
-                  const eased = dt2 < 0.7
-                    ? easeInQuad(dt2 / 0.7) * 1.3
-                    : 1.3 - 0.3 * easeInOutSine((dt2 - 0.7) / 0.3)
-                  const s = Math.min(eased, 1.15)
-                  group.children.forEach((child) => {
-                    child.scale.set(s, s, s)
-                  })
-                  if (dt2 < 1) {
-                    requestAnimationFrame(animateDrop)
-                  } else {
-                    group.children.forEach((child) => {
-                      child.scale.set(1, 1, 1)
-                    })
-                  }
-                }
-                animateDrop()
-
-                idx++
-                setTimeout(dropNextPin, 250)
-              } else {
-                setPhase('interactive')
-                setShowClickHint(true)
-                setTimeout(() => setShowClickHint(false), 4000)
-              }
-            }
-            dropNextPin()
-          }
-        }
-        phase2Animate()
-      }
-    }
-
-    phase1Animate()
-  }, [phase])
 
   // --- Raycaster for pin clicks ---
   useEffect(() => {
-    if (phase !== 'interactive') return
     const refs = sceneRef.current
     if (!refs) return
 
@@ -632,32 +441,19 @@ export default function GlobeScene() {
     const raycaster = new THREE.Raycaster()
     const mouse = new THREE.Vector2()
 
-    // Build a set of earth mesh UUIDs to exclude from pin hits
-    const earthMeshUUIDs = new Set<string>()
-    earth.traverse((obj) => {
-      if (obj === earth) earthMeshUUIDs.add(obj.uuid)
-    })
-    // Also exclude atmosphere etc — only pin groups' children are valid
     const pinChildUUIDs = new Set<string>()
     refs.pinGroups.forEach((group) => {
-      group.traverse((obj) => {
-        pinChildUUIDs.add(obj.uuid)
-      })
+      group.traverse((obj) => pinChildUUIDs.add(obj.uuid))
     })
 
     const findPinFromRay = (mx: number, my: number): string | null => {
       mouse.x = mx
       mouse.y = my
       raycaster.setFromCamera(mouse, camera)
-
-      // Raycast against earth recursively (includes pin children)
       const intersects = raycaster.intersectObject(earth, true)
-
-      // Filter to only pin children
       const pinHits: { id: string; distance: number }[] = []
       for (const hit of intersects) {
         if (!pinChildUUIDs.has(hit.object.uuid)) continue
-        // Walk up to find the pin group
         let obj: THREE.Object3D | null = hit.object
         while (obj) {
           if (obj.userData?.pinId) {
@@ -667,45 +463,35 @@ export default function GlobeScene() {
           obj = obj.parent
         }
       }
-
       if (pinHits.length === 0) return null
-
-      // Pick closest
       pinHits.sort((a, b) => a.distance - b.distance)
       return pinHits[0].id
     }
 
-    // Use pointerdown/pointerup to detect clicks (avoids OrbitControls eating click events)
     let pointerDownPos = { x: 0, y: 0 }
-
     const handlePointerDown = (e: PointerEvent) => {
       pointerDownPos = { x: e.clientX, y: e.clientY }
     }
-
     const handlePointerUp = (e: PointerEvent) => {
-      // Only treat as click if pointer didn't move much (not a drag)
       const dx = e.clientX - pointerDownPos.x
       const dy = e.clientY - pointerDownPos.y
-      if (dx * dx + dy * dy > 25) return // moved more than 5px = drag, not click
-
+      if (dx * dx + dy * dy > 25) return
       const rect = renderer.domElement.getBoundingClientRect()
       const mx = ((e.clientX - rect.left) / rect.width) * 2 - 1
       const my = -((e.clientY - rect.top) / rect.height) * 2 + 1
-
       const pinId = findPinFromRay(mx, my)
       if (pinId) {
         setSelectedPin((prev) => (prev === pinId ? null : (pinId as CountryId)))
+        setShowClickHint(false)
       } else {
         setSelectedPin(null)
       }
     }
-
     const handleMouseMove = (e: MouseEvent) => {
       const rect = renderer.domElement.getBoundingClientRect()
       const mx = ((e.clientX - rect.left) / rect.width) * 2 - 1
       const my = -((e.clientY - rect.top) / rect.height) * 2 + 1
-      const pinId = findPinFromRay(mx, my)
-      renderer.domElement.style.cursor = pinId ? 'pointer' : 'grab'
+      renderer.domElement.style.cursor = findPinFromRay(mx, my) ? 'pointer' : 'grab'
     }
 
     renderer.domElement.addEventListener('pointerdown', handlePointerDown)
@@ -716,32 +502,24 @@ export default function GlobeScene() {
       renderer.domElement.removeEventListener('pointerup', handlePointerUp)
       renderer.domElement.removeEventListener('mousemove', handleMouseMove)
     }
-  }, [phase])
+  }, [])
 
-  // --- Fetch Google Drive images when interactive ---
-  const fetchedRef = useRef(false)
+  // --- Fetch Google Drive images ---
   useEffect(() => {
-    if (phase !== 'interactive' || fetchedRef.current) return
-    fetchedRef.current = true
-    setDriveLoading(true)
-
     fetchAllDriveImages()
       .then((images) => setDriveImages(images))
       .catch(() => {})
       .finally(() => setDriveLoading(false))
-  }, [phase])
+  }, [])
 
-  // Get images for selected pin
   const driveImgs = selectedPin ? (driveImages[selectedPin] || []) : []
   const pinImages = driveImgs.map((d) => ({ url: d.url, permalink: '' }))
 
   return (
     <div className="relative w-full h-screen bg-white overflow-hidden">
-      {/* Three.js Canvas */}
       <div ref={containerRef} className="absolute inset-0" />
 
-      {/* Click hint — appears after pins are placed */}
-      {showClickHint && (
+      {showClickHint && !selectedPin && (
         <div className="absolute bottom-8 left-1/2 -translate-x-1/2 z-20 flex items-center gap-2 bg-white/90 backdrop-blur-md rounded-full px-5 py-2.5 shadow-[0_8px_24px_rgba(15,23,42,0.1)] border border-[#e2e8f0] animate-bounce">
           <svg width="20" height="20" viewBox="0 0 24 24" fill="none" className="text-[#dd2222]">
             <path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7zm0 9.5a2.5 2.5 0 1 1 0-5 2.5 2.5 0 0 1 0 5z" fill="currentColor"/>
@@ -752,37 +530,8 @@ export default function GlobeScene() {
         </div>
       )}
 
-      {/* Header — fades in during zoom */}
-      <div className={`transition-opacity duration-[2000ms] ease-out ${headerVisible ? 'opacity-100' : 'opacity-0 pointer-events-none'}`}>
-        <Header />
-      </div>
 
-      {/* Title + GO ASIA! — hidden completely after fade out */}
-      {phase === 'idle' && (
-      <div
-        className="absolute inset-0 flex flex-col items-center justify-center z-10 pointer-events-none gap-8"
-        style={{ opacity: textOpacity, transition: 'none' }}
-      >
-        <p className="text-[clamp(0.55rem,1vw,0.72rem)] tracking-[0.5em] uppercase text-[rgba(255,255,255,0.5)] font-normal">
-          Global Entrepreneurship Lab
-        </p>
-        <button
-          onClick={handleGoAsia}
-          className="pointer-events-auto text-[clamp(4rem,14vw,7rem)] font-bold tracking-[0.22em] uppercase text-[#f8fafc] bg-transparent border-none cursor-pointer px-5 py-2 transition-all duration-300 hover:tracking-[0.28em] hover:[text-shadow:0_0_80px_rgba(41,151,255,0.5)] active:translate-y-px"
-          style={{
-            textShadow: '0 0 60px rgba(41, 151, 255, 0.3)',
-            fontFamily: 'inherit',
-          }}
-        >
-          GO ASIA!
-        </button>
-        <p className="text-[clamp(0.5rem,0.8vw,0.65rem)] tracking-[0.35em] uppercase text-[rgba(255,255,255,0.4)] font-light">
-          武蔵野大学 アントレプレナーシップ学部 津吹ゼミ
-        </p>
-      </div>
-      )}
 
-      {/* Photos burst around globe — wait for data load, key on selectedPin to force remount */}
       {selectedPin && !driveLoading && (
         <PhotoBurst
           key={selectedPin}
@@ -790,7 +539,6 @@ export default function GlobeScene() {
           pinImages={pinImages}
         />
       )}
-
     </div>
   )
 }

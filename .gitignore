@@ -25,3 +25,7 @@ yarn-error.log*
 # local env files
 .env*.local
 .env
+.vercel
+
+# Google service account credentials
+tsubukizemi-demo-*.json

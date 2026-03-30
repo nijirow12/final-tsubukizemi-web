@@ -7,9 +7,20 @@ import Footer from './Footer'
 export default function ConditionalLayout({ children }: { children: React.ReactNode }) {
   const pathname = usePathname()
   const isLanding = pathname === '/'
+  const isGlobePage = pathname === '/home'
 
   if (isLanding) {
     return <>{children}</>
+  }
+
+  // /home: ヘッダーあり、フッター・padding無しの全画面
+  if (isGlobePage) {
+    return (
+      <>
+        <Header />
+        {children}
+      </>
+    )
   }
 
   return (
