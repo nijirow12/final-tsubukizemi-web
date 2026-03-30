@@ -221,6 +221,18 @@ function PhotoBurst({
         </p>
       </div>
 
+      {/* Big country name background */}
+      {!albumOpen && (
+        <div className="absolute inset-0 z-[5] flex items-center justify-center pointer-events-none" style={{ animation: 'fadeSlideIn 0.5s ease-out both' }}>
+          <span
+            className="text-[clamp(4rem,20vw,14rem)] font-black uppercase tracking-[0.15em] text-white select-none leading-none"
+            style={{ textShadow: '0 4px 30px rgba(0,0,0,0.15), 0 1px 8px rgba(0,0,0,0.1)' }}
+          >
+            {PIN_COORDINATES[selectedPin].label}
+          </span>
+        </div>
+      )}
+
       {/* Background photo grid behind globe */}
       {!albumOpen && (
         <div className="absolute top-14 md:top-[4.5rem] left-0 right-0 bottom-0 z-0 grid grid-cols-4 md:grid-cols-5 auto-rows-fr">
