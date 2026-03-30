@@ -218,12 +218,10 @@ function PhotoBurst({
 
   // ピンが変わるたびにランダムに20枚抽出（keyでremountされるので毎回実行）
   const isMobile = typeof window !== 'undefined' && window.innerWidth < 768
-  const photoPositions = isMobile ? PHOTO_POSITIONS_MOBILE : PHOTO_POSITIONS_DESKTOP
-  const photoCount = isMobile ? 8 : 12
 
   const [images] = useState(() => {
     const shuffled = [...pinImages].sort(() => Math.random() - 0.5)
-    return shuffled.slice(0, photoCount)
+    return shuffled.slice(0, isMobile ? 12 : 16)
   })
   const [albumOpen, setAlbumOpen] = useState(false)
   const [lightboxIndex, setLightboxIndex] = useState<number | null>(null)
@@ -252,36 +250,24 @@ function PhotoBurst({
         </p>
       </div>
 
-      {/* Scattered preview photos */}
-      {!albumOpen && images.map((img, i) => {
-        const pos = photoPositions[i % photoPositions.length]
-        const style: React.CSSProperties = {
-          top: pos.top,
-          left: pos.left,
-          right: pos.right,
-          transform: `rotate(${pos.rotate}deg)`,
-          width: isMobile ? 'clamp(70px, 38vw, 150px)' : 'clamp(120px, 14vw, 200px)',
-          height: isMobile ? 'clamp(52px, 28vw, 112px)' : 'clamp(90px, 10vw, 150px)',
-          animation: `fadeSlideIn 0.4s ease-out ${i * 0.04}s both`,
-          transition: 'translate 0.25s ease-out, scale 0.25s ease-out',
-        }
-        const cls = "absolute z-20 rounded-xl overflow-hidden shadow-[0_6px_24px_rgba(15,23,42,0.15)] border-2 border-white"
-
-        const inner = <img src={img.url} alt="" className="w-full h-full object-cover" loading="lazy" />
-
-        if (img.permalink) {
-          return (
-            <a key={i} data-photo href={img.permalink} target="_blank" rel="noopener noreferrer" className={cls} style={style}>
-              {inner}
-            </a>
-          )
-        }
-        return (
-          <div key={i} data-photo className={cls} style={style}>
-            {inner}
-          </div>
-        )
-      })}
+      {/* Background photo grid behind globe */}
+      {!albumOpen && (
+        <div className="absolute inset-0 z-10 grid grid-cols-3 md:grid-cols-4 auto-rows-fr">
+          {images.map((img, i) => (
+            <div
+              key={i}
+              data-photo
+              className="overflow-hidden"
+              style={{
+                animation: `fadeSlideIn 0.4s ease-out ${i * 0.04}s both`,
+                transition: 'translate 0.25s ease-out, scale 0.25s ease-out',
+              }}
+            >
+              <img src={img.url} alt="" className="w-full h-full object-cover" loading="lazy" />
+            </div>
+          ))}
+        </div>
+      )}
 
       {/* もっと見る button */}
       {!albumOpen && pinImages.length > 0 && (
