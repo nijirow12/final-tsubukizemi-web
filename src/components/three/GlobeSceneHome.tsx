@@ -189,6 +189,18 @@ function PhotoBurst({
     return shuffled.slice(0, 12)
   })
   const [albumOpen, setAlbumOpen] = useState(false)
+  const [lightboxIndex, setLightboxIndex] = useState<number | null>(null)
+
+  useEffect(() => {
+    if (lightboxIndex === null) return
+    const handleKey = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') setLightboxIndex(null)
+      if (e.key === 'ArrowRight') setLightboxIndex((prev) => prev !== null ? Math.min(prev + 1, pinImages.length - 1) : null)
+      if (e.key === 'ArrowLeft') setLightboxIndex((prev) => prev !== null ? Math.max(prev - 1, 0) : null)
+    }
+    window.addEventListener('keydown', handleKey)
+    return () => window.removeEventListener('keydown', handleKey)
+  }, [lightboxIndex, pinImages.length])
 
   return (
     <div ref={wrapperRef}>
@@ -271,8 +283,9 @@ function PhotoBurst({
               {pinImages.map((img, i) => (
                 <div
                   key={i}
-                  className="rounded-xl overflow-hidden shadow-[0_4px_16px_rgba(15,23,42,0.1)] border border-[#e2e8f0] bg-white hover:shadow-[0_8px_28px_rgba(15,23,42,0.16)] hover:scale-[1.03] transition-all duration-200"
+                  className="rounded-xl overflow-hidden shadow-[0_4px_16px_rgba(15,23,42,0.1)] border border-[#e2e8f0] bg-white hover:shadow-[0_8px_28px_rgba(15,23,42,0.16)] hover:scale-[1.03] transition-all duration-200 cursor-pointer"
                   style={{ animation: `fadeSlideIn 0.35s ease-out ${Math.min(i * 0.03, 1)}s both` }}
+                  onClick={() => setLightboxIndex(i)}
                 >
                   <div className="aspect-[4/3]">
                     <img src={img.url} alt="" className="w-full h-full object-cover" loading="lazy" />
@@ -280,6 +293,46 @@ function PhotoBurst({
                 </div>
               ))}
             </div>
+          </div>
+        </div>
+      )}
+
+      {/* Lightbox */}
+      {lightboxIndex !== null && pinImages[lightboxIndex] && (
+        <div
+          className="fixed inset-0 z-[60] flex items-center justify-center bg-black/80 backdrop-blur-sm"
+          onClick={() => setLightboxIndex(null)}
+        >
+          {lightboxIndex > 0 && (
+            <button
+              onClick={(e) => { e.stopPropagation(); setLightboxIndex(lightboxIndex - 1) }}
+              className="absolute left-2 md:left-6 top-1/2 -translate-y-1/2 w-10 h-10 md:w-12 md:h-12 rounded-full bg-white/20 border-none cursor-pointer flex items-center justify-center hover:bg-white/40 transition-colors"
+            >
+              <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="2" strokeLinecap="round"><polyline points="15 18 9 12 15 6" /></svg>
+            </button>
+          )}
+          <img
+            src={pinImages[lightboxIndex].url}
+            alt=""
+            className="max-w-[90vw] max-h-[85vh] object-contain rounded-lg shadow-2xl"
+            onClick={(e) => e.stopPropagation()}
+          />
+          {lightboxIndex < pinImages.length - 1 && (
+            <button
+              onClick={(e) => { e.stopPropagation(); setLightboxIndex(lightboxIndex + 1) }}
+              className="absolute right-2 md:right-6 top-1/2 -translate-y-1/2 w-10 h-10 md:w-12 md:h-12 rounded-full bg-white/20 border-none cursor-pointer flex items-center justify-center hover:bg-white/40 transition-colors"
+            >
+              <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="2" strokeLinecap="round"><polyline points="9 18 15 12 9 6" /></svg>
+            </button>
+          )}
+          <button
+            onClick={() => setLightboxIndex(null)}
+            className="absolute top-3 right-3 md:top-5 md:right-5 w-10 h-10 rounded-full bg-white/20 border-none cursor-pointer flex items-center justify-center hover:bg-white/40 transition-colors"
+          >
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="2" strokeLinecap="round"><line x1="18" y1="6" x2="6" y2="18" /><line x1="6" y1="6" x2="18" y2="18" /></svg>
+          </button>
+          <div className="absolute bottom-4 left-1/2 -translate-x-1/2 text-white/70 text-sm">
+            {lightboxIndex + 1} / {pinImages.length}
           </div>
         </div>
       )}
