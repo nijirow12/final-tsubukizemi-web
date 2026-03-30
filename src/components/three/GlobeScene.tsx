@@ -3,38 +3,10 @@
 import { useEffect, useRef, useState, useCallback } from 'react'
 import * as THREE from 'three'
 import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls.js'
-import { useRouter } from 'next/navigation'
+
 import { PIN_COORDINATES, type CountryId } from '@/data/pin-coordinates'
 import Header from '@/components/common/Header'
 import { fetchAllDriveImages, type DriveImage } from '@/lib/google-drive'
-
-// --- Photo positions ---
-// Desktop: 地球の左右に散らばる12枠
-const PHOTO_POSITIONS_DESKTOP: { top: string; left?: string; right?: string; rotate: number }[] = [
-  { top: '22%', left: '3%', rotate: -6 },
-  { top: '18%', left: '18%', rotate: 4 },
-  { top: '15%', right: '18%', rotate: -3 },
-  { top: '22%', right: '3%', rotate: 7 },
-  { top: '42%', left: '1%', rotate: -8 },
-  { top: '42%', right: '1%', rotate: 5 },
-  { top: '62%', left: '2%', rotate: 6 },
-  { top: '62%', right: '2%', rotate: -5 },
-  { top: '78%', left: '5%', rotate: -4 },
-  { top: '75%', left: '20%', rotate: 8 },
-  { top: '75%', right: '20%', rotate: -7 },
-  { top: '78%', right: '5%', rotate: 3 },
-]
-// Mobile: 画面上部2/3に2列で並べる（地球は下部1/3）
-const PHOTO_POSITIONS_MOBILE: { top: string; left?: string; right?: string; rotate: number }[] = [
-  { top: '8%',  left: '3%',  rotate: -4 },
-  { top: '8%',  right: '3%', rotate: 5 },
-  { top: '20%', left: '5%',  rotate: 3 },
-  { top: '20%', right: '5%', rotate: -6 },
-  { top: '32%', left: '3%',  rotate: -5 },
-  { top: '32%', right: '3%', rotate: 4 },
-  { top: '44%', left: '5%',  rotate: 6 },
-  { top: '44%', right: '5%', rotate: -3 },
-]
 
 const REPEL_RADIUS = 180
 const REPEL_STRENGTH = 50
@@ -45,7 +17,6 @@ const PIN_HEIGHT = 0.28
 const PIN_RADIUS = 0.025
 const PIN_HEAD_RADIUS = 0.07
 const ASIA_TARGET_ROT_Y = -3.44
-const TOTAL_DURATION = 3500
 
 // --- Easing ---
 function easeInOutQuart(t: number) {
@@ -221,7 +192,7 @@ function PhotoBurst({
 
   const [images] = useState(() => {
     const shuffled = [...pinImages].sort(() => Math.random() - 0.5)
-    return shuffled.slice(0, isMobile ? 12 : 16)
+    return shuffled.slice(0, isMobile ? 20 : 30)
   })
   const [albumOpen, setAlbumOpen] = useState(false)
   const [lightboxIndex, setLightboxIndex] = useState<number | null>(null)
@@ -252,7 +223,7 @@ function PhotoBurst({
 
       {/* Background photo grid behind globe */}
       {!albumOpen && (
-        <div className="absolute inset-0 z-0 grid grid-cols-3 md:grid-cols-4 auto-rows-fr">
+        <div className="absolute top-14 md:top-[4.5rem] left-0 right-0 bottom-0 z-0 grid grid-cols-4 md:grid-cols-6 auto-rows-fr">
           {images.map((img, i) => (
             <div
               key={i}
@@ -393,11 +364,9 @@ export default function GlobeScene() {
   const [headerVisible, setHeaderVisible] = useState(false)
   const [selectedPin, setSelectedPin] = useState<CountryId | null>(null)
   const [textOpacity, setTextOpacity] = useState(1)
-  const [whiteOverlay, setWhiteOverlay] = useState(0)
   const [showClickHint, setShowClickHint] = useState(false)
   const [driveImages, setDriveImages] = useState<Record<string, DriveImage[]>>({})
   const [driveLoading, setDriveLoading] = useState(false)
-  const router = useRouter()
 
   // --- Init ---
   const initScene = useCallback(() => {
@@ -575,7 +544,7 @@ export default function GlobeScene() {
     const startEarthRotY = earth.rotation.y
     const startCamPos = camera.position.clone() // (0, 0, 9)
     const isMobileView = window.innerWidth < 768
-    const endCamPos = new THREE.Vector3(0, 0, isMobileView ? 22 : 17.5)
+    const endCamPos = new THREE.Vector3(0, 0, isMobileView ? 36 : 25)
 
     // Target rotation (shortest path to Asia)
     let deltaRotY = ASIA_TARGET_ROT_Y - (startEarthRotY % (2 * Math.PI))
@@ -621,7 +590,7 @@ export default function GlobeScene() {
         const phase2Start = Date.now()
         const startRotX = earth.rotation.x
         const phase2CamStart = camera.position.clone()
-        const phase2CamEnd = new THREE.Vector3(0, 0, isMobileView ? 18 : 12.62)
+        const phase2CamEnd = new THREE.Vector3(0, 0, isMobileView ? 36 : 18)
 
         const phase2Animate = () => {
           const dt = Math.min((Date.now() - phase2Start) / PHASE2_DURATION, 1)
