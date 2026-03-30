@@ -718,18 +718,14 @@ export default function GlobeScene() {
     }
   }, [phase])
 
-  // --- Fetch Google Drive images when interactive ---
-  const fetchedRef = useRef(false)
+  // --- Fetch Google Drive images immediately on mount ---
   useEffect(() => {
-    if (phase !== 'interactive' || fetchedRef.current) return
-    fetchedRef.current = true
     setDriveLoading(true)
-
     fetchAllDriveImages()
       .then((images) => setDriveImages(images))
       .catch(() => {})
       .finally(() => setDriveLoading(false))
-  }, [phase])
+  }, [])
 
   // Get images for selected pin
   const driveImgs = selectedPin ? (driveImages[selectedPin] || []) : []
