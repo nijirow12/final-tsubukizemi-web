@@ -8,8 +8,9 @@ import { PIN_COORDINATES, type CountryId } from '@/data/pin-coordinates'
 import Header from '@/components/common/Header'
 import { fetchAllDriveImages, type DriveImage } from '@/lib/google-drive'
 
-// --- Photo positions: オリジナル12枠 ---
-const PHOTO_POSITIONS: { top: string; left?: string; right?: string; rotate: number }[] = [
+// --- Photo positions ---
+// Desktop: 地球の左右に散らばる12枠
+const PHOTO_POSITIONS_DESKTOP: { top: string; left?: string; right?: string; rotate: number }[] = [
   { top: '22%', left: '3%', rotate: -6 },
   { top: '18%', left: '18%', rotate: 4 },
   { top: '15%', right: '18%', rotate: -3 },
@@ -22,6 +23,17 @@ const PHOTO_POSITIONS: { top: string; left?: string; right?: string; rotate: num
   { top: '75%', left: '20%', rotate: 8 },
   { top: '75%', right: '20%', rotate: -7 },
   { top: '78%', right: '5%', rotate: 3 },
+]
+// Mobile: 画面上部2/3に2列で並べる（地球は下部1/3）
+const PHOTO_POSITIONS_MOBILE: { top: string; left?: string; right?: string; rotate: number }[] = [
+  { top: '8%',  left: '3%',  rotate: -4 },
+  { top: '8%',  right: '3%', rotate: 5 },
+  { top: '20%', left: '5%',  rotate: 3 },
+  { top: '20%', right: '5%', rotate: -6 },
+  { top: '32%', left: '3%',  rotate: -5 },
+  { top: '32%', right: '3%', rotate: 4 },
+  { top: '44%', left: '5%',  rotate: 6 },
+  { top: '44%', right: '5%', rotate: -3 },
 ]
 
 const REPEL_RADIUS = 180
@@ -205,9 +217,13 @@ function PhotoBurst({
   }, [])
 
   // ピンが変わるたびにランダムに20枚抽出（keyでremountされるので毎回実行）
+  const isMobile = typeof window !== 'undefined' && window.innerWidth < 768
+  const photoPositions = isMobile ? PHOTO_POSITIONS_MOBILE : PHOTO_POSITIONS_DESKTOP
+  const photoCount = isMobile ? 8 : 12
+
   const [images] = useState(() => {
     const shuffled = [...pinImages].sort(() => Math.random() - 0.5)
-    return shuffled.slice(0, 12)
+    return shuffled.slice(0, photoCount)
   })
   const [albumOpen, setAlbumOpen] = useState(false)
   const [lightboxIndex, setLightboxIndex] = useState<number | null>(null)
@@ -227,7 +243,7 @@ function PhotoBurst({
   return (
     <div ref={wrapperRef}>
       {/* Country label */}
-      <div className="absolute top-[12%] md:top-[15%] left-1/2 -translate-x-1/2 z-30 text-center pointer-events-none" style={{ animation: 'fadeSlideIn 0.3s ease-out both' }}>
+      <div className="absolute top-[2%] md:top-[15%] left-1/2 -translate-x-1/2 z-30 text-center pointer-events-none" style={{ animation: 'fadeSlideIn 0.3s ease-out both' }}>
         <h3 className="text-lg md:text-2xl font-semibold tracking-[0.12em] text-[#0f172a]">
           {PIN_COORDINATES[selectedPin].labelJa}
         </h3>
@@ -238,14 +254,14 @@ function PhotoBurst({
 
       {/* Scattered preview photos */}
       {!albumOpen && images.map((img, i) => {
-        const pos = PHOTO_POSITIONS[i % PHOTO_POSITIONS.length]
+        const pos = photoPositions[i % photoPositions.length]
         const style: React.CSSProperties = {
           top: pos.top,
           left: pos.left,
           right: pos.right,
           transform: `rotate(${pos.rotate}deg)`,
-          width: 'clamp(80px, 22vw, 200px)',
-          height: 'clamp(60px, 16vw, 150px)',
+          width: isMobile ? 'clamp(70px, 38vw, 150px)' : 'clamp(120px, 14vw, 200px)',
+          height: isMobile ? 'clamp(52px, 28vw, 112px)' : 'clamp(90px, 10vw, 150px)',
           animation: `fadeSlideIn 0.4s ease-out ${i * 0.04}s both`,
           transition: 'translate 0.25s ease-out, scale 0.25s ease-out',
         }
@@ -571,7 +587,8 @@ export default function GlobeScene() {
 
     const startEarthRotY = earth.rotation.y
     const startCamPos = camera.position.clone() // (0, 0, 9)
-    const endCamPos = new THREE.Vector3(0, 0, 17.5) // pulled back for interactive view
+    const isMobileView = window.innerWidth < 768
+    const endCamPos = new THREE.Vector3(0, 0, isMobileView ? 22 : 17.5)
 
     // Target rotation (shortest path to Asia)
     let deltaRotY = ASIA_TARGET_ROT_Y - (startEarthRotY % (2 * Math.PI))
@@ -603,7 +620,7 @@ export default function GlobeScene() {
 
       // Earth: rotate to Asia + sink down
       earth.rotation.y = startEarthRotY + deltaRotY * rotT
-      earth.position.y = -3.5 * rotT
+      earth.position.y = (isMobileView ? -5.5 : -3.5) * rotT
 
       // Camera: pull back
       camera.position.lerpVectors(startCamPos, endCamPos, rotT)
@@ -617,7 +634,7 @@ export default function GlobeScene() {
         const phase2Start = Date.now()
         const startRotX = earth.rotation.x
         const phase2CamStart = camera.position.clone()
-        const phase2CamEnd = new THREE.Vector3(0, 0, 12.62) // zoom in (0.8x)
+        const phase2CamEnd = new THREE.Vector3(0, 0, isMobileView ? 18 : 12.62)
 
         const phase2Animate = () => {
           const dt = Math.min((Date.now() - phase2Start) / PHASE2_DURATION, 1)
