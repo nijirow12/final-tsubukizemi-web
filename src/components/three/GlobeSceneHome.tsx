@@ -198,7 +198,7 @@ function PhotoBurst({
 
   const [images] = useState(() => {
     const shuffled = [...pinImages].sort(() => Math.random() - 0.5)
-    return shuffled.slice(0, isMobile ? 12 : 15)
+    return shuffled.slice(0, isMobile ? 12 : 60)
   })
   const [albumOpen, setAlbumOpen] = useState(false)
   const [lightboxIndex, setLightboxIndex] = useState<number | null>(null)
@@ -227,7 +227,7 @@ function PhotoBurst({
 
       {/* Background photo grid behind globe */}
       {!albumOpen && (
-        <div className="absolute top-14 md:top-[4.5rem] left-0 right-0 bottom-0 z-0 grid grid-cols-4 md:grid-cols-5 auto-rows-fr">
+        <div className="absolute top-14 md:top-[4.5rem] left-0 right-0 bottom-0 z-0 grid grid-cols-4 md:grid-cols-10 auto-rows-fr">
           {images.map((img, i) => (
             <div
               key={i}
