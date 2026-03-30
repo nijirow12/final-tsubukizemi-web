@@ -252,7 +252,7 @@ function PhotoBurst({
 
       {/* Background photo grid behind globe */}
       {!albumOpen && (
-        <div className="absolute inset-0 z-10 grid grid-cols-3 md:grid-cols-4 auto-rows-fr">
+        <div className="absolute inset-0 z-0 grid grid-cols-3 md:grid-cols-4 auto-rows-fr">
           {images.map((img, i) => (
             <div
               key={i}
@@ -801,7 +801,7 @@ export default function GlobeScene() {
   return (
     <div className="relative w-full h-screen bg-white overflow-hidden">
       {/* Three.js Canvas */}
-      <div ref={containerRef} className="absolute inset-0" />
+      <div ref={containerRef} className="absolute inset-0 z-10" />
 
       {/* Click hint — appears after pins are placed */}
       {showClickHint && (

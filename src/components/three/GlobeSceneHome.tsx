@@ -227,7 +227,7 @@ function PhotoBurst({
 
       {/* Background photo grid behind globe */}
       {!albumOpen && (
-        <div className="absolute inset-0 z-10 grid grid-cols-3 md:grid-cols-4 auto-rows-fr">
+        <div className="absolute inset-0 z-0 grid grid-cols-3 md:grid-cols-4 auto-rows-fr">
           {images.map((img, i) => (
             <div
               key={i}
@@ -573,7 +573,7 @@ export default function GlobeSceneHome() {
 
   return (
     <div className="relative w-full h-screen bg-white overflow-hidden">
-      <div ref={containerRef} className="absolute inset-0" />
+      <div ref={containerRef} className="absolute inset-0 z-10" />
 
       {showClickHint && !selectedPin && (
         <div className="absolute bottom-8 left-1/2 -translate-x-1/2 z-20 flex items-center gap-2 bg-white/90 backdrop-blur-md rounded-full px-5 py-2.5 shadow-[0_8px_24px_rgba(15,23,42,0.1)] border border-[#e2e8f0] animate-bounce">
