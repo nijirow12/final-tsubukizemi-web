@@ -192,11 +192,11 @@ function PhotoBurst({
 
   return (
     <div ref={wrapperRef}>
-      <div className="absolute top-[15%] left-1/2 -translate-x-1/2 z-30 text-center pointer-events-none" style={{ animation: 'fadeSlideIn 0.3s ease-out both' }}>
-        <h3 className="text-2xl font-semibold tracking-[0.12em] text-[#0f172a]">
+      <div className="absolute top-[12%] md:top-[15%] left-1/2 -translate-x-1/2 z-30 text-center pointer-events-none" style={{ animation: 'fadeSlideIn 0.3s ease-out both' }}>
+        <h3 className="text-lg md:text-2xl font-semibold tracking-[0.12em] text-[#0f172a]">
           {PIN_COORDINATES[selectedPin].labelJa}
         </h3>
-        <p className="text-[0.85rem] text-[#64748b] tracking-[0.08em]">
+        <p className="text-[0.75rem] md:text-[0.85rem] text-[#64748b] tracking-[0.08em]">
           {PIN_COORDINATES[selectedPin].label} — {pinImages.length} photos
         </p>
       </div>
@@ -208,8 +208,8 @@ function PhotoBurst({
           left: pos.left,
           right: pos.right,
           transform: `rotate(${pos.rotate}deg)`,
-          width: 'clamp(120px, 14vw, 200px)',
-          height: 'clamp(90px, 10vw, 150px)',
+          width: 'clamp(80px, 22vw, 200px)',
+          height: 'clamp(60px, 16vw, 150px)',
           animation: `fadeSlideIn 0.4s ease-out ${i * 0.04}s both`,
           transition: 'translate 0.25s ease-out, scale 0.25s ease-out',
         }
@@ -247,27 +247,27 @@ function PhotoBurst({
 
       {albumOpen && (
         <div className="fixed inset-0 z-50 flex flex-col bg-[#f8fafc]/95 backdrop-blur-md" style={{ animation: 'fadeSlideIn 0.3s ease-out both' }}>
-          <div className="flex items-center justify-between px-8 py-5 border-b border-[#e2e8f0]">
+          <div className="flex items-center justify-between px-4 md:px-8 py-4 md:py-5 border-b border-[#e2e8f0]">
             <div>
-              <h2 className="text-xl font-semibold tracking-[0.1em] text-[#0f172a]">
+              <h2 className="text-lg md:text-xl font-semibold tracking-[0.1em] text-[#0f172a]">
                 {PIN_COORDINATES[selectedPin].labelJa}
               </h2>
-              <p className="text-[0.8rem] text-[#64748b] tracking-[0.06em]">
+              <p className="text-[0.75rem] md:text-[0.8rem] text-[#64748b] tracking-[0.06em]">
                 {PIN_COORDINATES[selectedPin].label} — {pinImages.length} photos
               </p>
             </div>
             <button
               onClick={() => setAlbumOpen(false)}
-              className="flex items-center gap-2 rounded-full px-5 py-2.5 bg-white border border-[#e2e8f0] shadow-sm cursor-pointer hover:bg-[#f1f5f9] transition-colors duration-150"
+              className="flex items-center gap-1.5 md:gap-2 rounded-full px-3 md:px-5 py-2 md:py-2.5 bg-white border border-[#e2e8f0] shadow-sm cursor-pointer hover:bg-[#f1f5f9] transition-colors duration-150"
             >
               <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" className="text-[#64748b]">
                 <line x1="18" y1="6" x2="6" y2="18" /><line x1="6" y1="6" x2="18" y2="18" />
               </svg>
-              <span className="text-[0.8rem] font-medium text-[#475569]">閉じる</span>
+              <span className="text-[0.75rem] md:text-[0.8rem] font-medium text-[#475569]">閉じる</span>
             </button>
           </div>
-          <div className="flex-1 overflow-y-auto px-8 py-6">
-            <div className="grid grid-cols-[repeat(auto-fill,minmax(220px,1fr))] gap-4 max-w-[1400px] mx-auto">
+          <div className="flex-1 overflow-y-auto px-3 md:px-8 py-4 md:py-6">
+            <div className="grid grid-cols-2 md:grid-cols-[repeat(auto-fill,minmax(220px,1fr))] gap-2 md:gap-4 max-w-[1400px] mx-auto">
               {pinImages.map((img, i) => (
                 <div
                   key={i}

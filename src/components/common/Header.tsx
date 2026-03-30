@@ -1,5 +1,6 @@
 'use client'
 
+import { useState } from 'react'
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
 
@@ -66,20 +67,22 @@ function NoteIcon() {
 
 export default function Header({ className = '' }: { className?: string }) {
   const pathname = usePathname()
+  const [menuOpen, setMenuOpen] = useState(false)
 
   return (
     <header
       className={`fixed top-0 left-0 right-0 z-20 bg-[#f8fafc]/85 border-b border-[#e2e8f0]/75 backdrop-blur-[12px] ${className}`}
     >
-      <div className="w-full px-[clamp(1.6rem,3.5vw,3rem)] pr-[clamp(2.8rem,5vw,5rem)] py-5 flex items-center justify-between gap-8">
-        <Link href="/home" className="no-underline text-inherit flex flex-col gap-1">
-          <span className="text-[1.35rem] font-semibold tracking-[0.4em]">TSUBUKI SEMINAR</span>
-          <span className="text-[0.7rem] tracking-[0.18em] text-[#64748b] uppercase">
+      <div className="w-full px-4 md:px-[clamp(1.6rem,3.5vw,3rem)] md:pr-[clamp(2.8rem,5vw,5rem)] py-3 md:py-5 flex items-center justify-between gap-4 md:gap-8">
+        <Link href="/home" className="no-underline text-inherit flex flex-col gap-0.5 md:gap-1 shrink-0">
+          <span className="text-[clamp(0.9rem,2.5vw,1.35rem)] font-semibold tracking-[0.3em] md:tracking-[0.4em]">TSUBUKI SEMINAR</span>
+          <span className="text-[clamp(0.5rem,1.2vw,0.7rem)] tracking-[0.14em] md:tracking-[0.18em] text-[#64748b] uppercase">
             武蔵野大学アントレプレナーシップ学部 グローバルゼミ
           </span>
         </Link>
 
-        <div className="flex items-center gap-7">
+        {/* Desktop nav */}
+        <div className="hidden md:flex items-center gap-7">
           <nav aria-label="メインナビゲーション">
             <ul className="list-none m-0 p-0 flex items-center gap-7">
               {navItems.map((item) => {
@@ -125,7 +128,57 @@ export default function Header({ className = '' }: { className?: string }) {
             </Link>
           </div>
         </div>
+
+        {/* Mobile hamburger */}
+        <button
+          onClick={() => setMenuOpen(!menuOpen)}
+          className="md:hidden flex flex-col gap-[5px] p-2 bg-transparent border-none cursor-pointer"
+          aria-label="メニューを開く"
+        >
+          <span className={`block w-5 h-[2px] bg-[#111827] transition-all duration-300 ${menuOpen ? 'rotate-45 translate-y-[7px]' : ''}`} />
+          <span className={`block w-5 h-[2px] bg-[#111827] transition-all duration-300 ${menuOpen ? 'opacity-0' : ''}`} />
+          <span className={`block w-5 h-[2px] bg-[#111827] transition-all duration-300 ${menuOpen ? '-rotate-45 -translate-y-[7px]' : ''}`} />
+        </button>
       </div>
+
+      {/* Mobile menu */}
+      {menuOpen && (
+        <div className="md:hidden bg-[#f8fafc]/95 backdrop-blur-md border-t border-[#e2e8f0]/50 px-4 py-6 flex flex-col gap-5">
+          <nav>
+            <ul className="list-none m-0 p-0 flex flex-col gap-4">
+              {navItems.map((item) => {
+                const isActive = pathname === item.href
+                return (
+                  <li key={item.href}>
+                    <Link
+                      href={item.href}
+                      onClick={() => setMenuOpen(false)}
+                      className={`no-underline text-[0.9rem] font-semibold tracking-[0.18em] uppercase ${isActive ? 'text-[#111827]' : 'text-[#475569]'}`}
+                    >
+                      {item.label}
+                    </Link>
+                  </li>
+                )
+              })}
+            </ul>
+          </nav>
+
+          <div className="flex items-center gap-4 pt-2 border-t border-[#e2e8f0]/50">
+            {socialLinks.map(({ href, label, icon: Icon }) => (
+              <a
+                key={href}
+                href={href}
+                target="_blank"
+                rel="noopener noreferrer"
+                aria-label={label}
+                className="inline-flex items-center justify-center text-[#111827] opacity-70"
+              >
+                <Icon />
+              </a>
+            ))}
+          </div>
+        </div>
+      )}
     </header>
   )
 }
