@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { drive } from '@/lib/drive-auth'
+import { getDrive } from '@/lib/drive-auth'
 
 export async function GET(request: NextRequest) {
   const fileId = request.nextUrl.searchParams.get('fileId')
@@ -9,6 +9,7 @@ export async function GET(request: NextRequest) {
   }
 
   try {
+    const drive = getDrive()
     const meta = await drive.files.get({
       fileId,
       fields: 'thumbnailLink',

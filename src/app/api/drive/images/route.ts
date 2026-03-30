@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { drive } from '@/lib/drive-auth'
+import { getDrive } from '@/lib/drive-auth'
 
 export async function GET(request: NextRequest) {
   const folderId = request.nextUrl.searchParams.get('folderId')
@@ -12,6 +12,7 @@ export async function GET(request: NextRequest) {
   try {
     const q = `'${folderId}' in parents and mimeType contains 'image/' and trashed = false`
 
+    const drive = getDrive()
     const response = await drive.files.list({
       q,
       pageSize: 50,

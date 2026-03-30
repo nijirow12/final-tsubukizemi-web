@@ -1,5 +1,5 @@
 import { NextResponse } from 'next/server'
-import { drive } from '@/lib/drive-auth'
+import { getDrive } from '@/lib/drive-auth'
 
 const ROOT_FOLDER_ID = process.env.GOOGLE_DRIVE_ROOT_FOLDER_ID || ''
 
@@ -11,6 +11,7 @@ async function listAllCountryFolders() {
   if (!ROOT_FOLDER_ID) return []
 
   // 第1階層: 地域フォルダ
+  const drive = getDrive()
   const regionRes = await drive.files.list({
     q: `'${ROOT_FOLDER_ID}' in parents and mimeType = 'application/vnd.google-apps.folder' and trashed = false`,
     pageSize: 100,
