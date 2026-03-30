@@ -572,7 +572,7 @@ export default function GlobeSceneHome() {
   const pinImages = driveImgs.map((d) => ({ url: d.url, permalink: '' }))
 
   return (
-    <div className="relative w-full h-screen bg-white overflow-hidden">
+    <div className="relative w-full h-screen overflow-hidden">
       <div ref={containerRef} className="absolute inset-0 z-10" />
 
       {showClickHint && !selectedPin && (
