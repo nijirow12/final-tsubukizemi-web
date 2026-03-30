@@ -243,7 +243,7 @@ function PhotoBurst({
   return (
     <div ref={wrapperRef}>
       {/* Country label */}
-      <div className="absolute top-[2%] md:top-[15%] left-1/2 -translate-x-1/2 z-30 text-center pointer-events-none" style={{ animation: 'fadeSlideIn 0.3s ease-out both' }}>
+      <div className="absolute top-[9%] md:top-[15%] left-1/2 -translate-x-1/2 z-30 text-center pointer-events-none" style={{ animation: 'fadeSlideIn 0.3s ease-out both' }}>
         <h3 className="text-lg md:text-2xl font-semibold tracking-[0.12em] text-[#0f172a]">
           {PIN_COORDINATES[selectedPin].labelJa}
         </h3>
@@ -424,7 +424,8 @@ export default function GlobeScene() {
     // No scene.background — alpha renderer on white page
 
     const camera = new THREE.PerspectiveCamera(45, w / h, 0.1, 1000)
-    camera.position.set(0, 0, 10)
+    const isMobileInit = w < 768
+    camera.position.set(0, 0, isMobileInit ? 14 : 10)
 
     const renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true })
     renderer.setSize(w, h)
@@ -839,12 +840,12 @@ export default function GlobeScene() {
         className="absolute inset-0 flex flex-col items-center justify-center z-10 pointer-events-none gap-8"
         style={{ opacity: textOpacity, transition: 'none' }}
       >
-        <p className="text-[clamp(0.55rem,1vw,0.72rem)] tracking-[0.5em] uppercase text-[rgba(255,255,255,0.5)] font-normal">
+        <p className="text-[clamp(0.45rem,1vw,0.72rem)] tracking-[0.5em] uppercase text-[rgba(255,255,255,0.5)] font-normal">
           Global Entrepreneurship Lab
         </p>
         <button
           onClick={handleGoAsia}
-          className="pointer-events-auto text-[clamp(4rem,14vw,7rem)] font-bold tracking-[0.22em] uppercase text-[#f8fafc] bg-transparent border-none cursor-pointer px-5 py-2 transition-all duration-300 hover:tracking-[0.28em] hover:[text-shadow:0_0_80px_rgba(41,151,255,0.5)] active:translate-y-px"
+          className="pointer-events-auto text-[clamp(2.2rem,10vw,7rem)] font-bold tracking-[0.22em] uppercase text-[#f8fafc] bg-transparent border-none cursor-pointer px-5 py-2 transition-all duration-300 hover:tracking-[0.28em] hover:[text-shadow:0_0_80px_rgba(41,151,255,0.5)] active:translate-y-px"
           style={{
             textShadow: '0 0 60px rgba(41, 151, 255, 0.3)',
             fontFamily: 'inherit',

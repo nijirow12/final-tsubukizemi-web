@@ -218,7 +218,7 @@ function PhotoBurst({
 
   return (
     <div ref={wrapperRef}>
-      <div className="absolute top-[2%] md:top-[15%] left-1/2 -translate-x-1/2 z-30 text-center pointer-events-none" style={{ animation: 'fadeSlideIn 0.3s ease-out both' }}>
+      <div className="absolute top-[9%] md:top-[15%] left-1/2 -translate-x-1/2 z-30 text-center pointer-events-none" style={{ animation: 'fadeSlideIn 0.3s ease-out both' }}>
         <h3 className="text-lg md:text-2xl font-semibold tracking-[0.12em] text-[#0f172a]">
           {PIN_COORDINATES[selectedPin].labelJa}
         </h3>

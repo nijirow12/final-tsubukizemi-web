@@ -71,7 +71,7 @@ export default function Header({ className = '' }: { className?: string }) {
 
   return (
     <header
-      className={`fixed top-0 left-0 right-0 z-20 bg-[#f8fafc]/85 border-b border-[#e2e8f0]/75 backdrop-blur-[12px] ${className}`}
+      className={`fixed top-0 left-0 right-0 z-40 bg-[#f8fafc]/85 border-b border-[#e2e8f0]/75 backdrop-blur-[12px] ${className}`}
     >
       <div className="w-full px-4 md:px-[clamp(1.6rem,3.5vw,3rem)] md:pr-[clamp(2.8rem,5vw,5rem)] py-3 md:py-5 flex items-center justify-between gap-4 md:gap-8">
         <Link href="/home" className="no-underline text-inherit flex flex-col gap-0.5 md:gap-1 shrink-0">
