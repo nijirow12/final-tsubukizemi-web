@@ -594,7 +594,7 @@ export default function GlobeScene() {
     const startEarthRotY = earth.rotation.y
     const startCamPos = camera.position.clone() // (0, 0, 9)
     const isMobileView = window.innerWidth < 768
-    const endCamPos = new THREE.Vector3(0, 0, isMobileView ? 26 : 25)
+    const endCamPos = new THREE.Vector3(0, -2, isMobileView ? 26 : 25)
 
     // Target rotation (shortest path to Asia)
     let deltaRotY = ASIA_TARGET_ROT_Y - (startEarthRotY % (2 * Math.PI))
@@ -640,7 +640,7 @@ export default function GlobeScene() {
         const phase2Start = Date.now()
         const startRotX = earth.rotation.x
         const phase2CamStart = camera.position.clone()
-        const phase2CamEnd = new THREE.Vector3(0, 0, isMobileView ? 26 : 18)
+        const phase2CamEnd = new THREE.Vector3(0, -2, isMobileView ? 26 : 18)
 
         const phase2Animate = () => {
           const dt = Math.min((Date.now() - phase2Start) / PHASE2_DURATION, 1)
