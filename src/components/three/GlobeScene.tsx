@@ -626,7 +626,7 @@ export default function GlobeScene() {
 
       // Earth: rotate to Asia + sink down
       earth.rotation.y = startEarthRotY + deltaRotY * rotT
-      earth.position.y = (isMobileView ? -5.5 : -3.5) * rotT
+      earth.position.y = (isMobileView ? -3.5 : -3.5) * rotT
 
       // Camera: pull back
       camera.position.lerpVectors(startCamPos, endCamPos, rotT)
@@ -867,7 +867,7 @@ export default function GlobeScene() {
       )}
 
       {/* Random global photos — shown after animation, before pin selection */}
-      {phase === 'interactive' && !selectedPin && allImagesLoaded && (
+      {phase === 'interactive' && !selectedPin && Object.keys(driveImages).length > 0 && (
         <RandomGlobalPhotos driveImages={driveImages} />
       )}
 
