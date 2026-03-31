@@ -412,7 +412,7 @@ export default function GlobeSceneHome() {
     const scene = new THREE.Scene()
     const camera = new THREE.PerspectiveCamera(45, w / h, 0.1, 1000)
     const isMobileView = w < 768
-    camera.position.set(0, 0, isMobileView ? 36 : 18)
+    camera.position.set(0, 0, isMobileView ? 26 : 18)
 
     const renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true })
     renderer.setSize(w, h)

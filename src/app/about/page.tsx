@@ -76,7 +76,7 @@ export default function AboutPage() {
             <img
               src="/images/tubukitatuya.jpg"
               alt={professorProfile.name}
-              className="shrink-0 w-full md:w-[280px] aspect-[3/4] rounded-lg object-cover"
+              className="shrink-0 w-[180px] md:w-[280px] aspect-[3/4] rounded-lg object-cover"
             />
             <div className="flex flex-col justify-center">
               <h2 className="text-[2rem] md:text-[2.5rem] font-medium tracking-[0.02em] text-[#111827] leading-tight">
