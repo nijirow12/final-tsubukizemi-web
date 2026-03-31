@@ -1,47 +1,64 @@
-export default function ContactPage() {
-  return (
-    <div className="flex flex-col gap-12">
-      <section className="bg-white rounded-3xl px-[2.8rem] py-[2.6rem] shadow-[0_22px_40px_rgba(15,23,42,0.1)] flex flex-col gap-7">
-        <div className="flex flex-col gap-2.5">
-          <p className="m-0 text-2xl tracking-[0.14em] uppercase text-[#0f172a]">CONTACT</p>
-          <p className="m-0 text-[0.95rem] text-[#475569] max-w-[660px] leading-[1.7]">
-            お問い合わせはこちらから
-          </p>
-        </div>
+'use client'
 
-        <form className="flex flex-col gap-5 max-w-[600px]">
+import { useLanguage } from '@/lib/language-context'
+
+export default function ContactPage() {
+  const { lang } = useLanguage()
+  const t = lang === 'ja'
+
+  return (
+    <div className="bg-white min-h-screen">
+      {/* Hero */}
+      <div className="pt-32 md:pt-36 pb-8 px-6 md:px-12 max-w-[960px] mx-auto">
+        <h1 className="text-[clamp(2.5rem,6vw,4rem)] font-extralight tracking-[0.2em] text-[#111827] leading-none">
+          CONTACT
+        </h1>
+        <p className="mt-4 text-[#94a3b8] text-[0.78rem] tracking-[0.15em]">
+          {t ? 'お問い合わせはこちらから' : 'Get in touch with us'}
+        </p>
+      </div>
+
+      {/* Content */}
+      <div className="max-w-[960px] mx-auto px-6 md:px-12 py-12 md:py-16">
+        <form className="flex flex-col gap-6 max-w-[600px]">
           <div className="flex flex-col gap-1.5">
-            <label htmlFor="name" className="text-[0.85rem] font-semibold text-[#111827]">お名前</label>
+            <label htmlFor="name" className="text-[0.7rem] tracking-[0.3em] uppercase text-[#94a3b8] font-medium">
+              {t ? 'お名前' : 'Name'}
+            </label>
             <input
               type="text"
               id="name"
-              className="px-4 py-3 rounded-xl border border-[#e2e8f0] bg-[rgba(15,23,42,0.02)] text-[#0f172a] text-base outline-none transition-colors focus:border-[#1e3a8a]"
+              className="px-4 py-3 border-b border-[#e2e8f0] bg-transparent text-[#0f172a] text-base outline-none transition-colors focus:border-[#111827]"
             />
           </div>
           <div className="flex flex-col gap-1.5">
-            <label htmlFor="email" className="text-[0.85rem] font-semibold text-[#111827]">メールアドレス</label>
+            <label htmlFor="email" className="text-[0.7rem] tracking-[0.3em] uppercase text-[#94a3b8] font-medium">
+              {t ? 'メールアドレス' : 'Email'}
+            </label>
             <input
               type="email"
               id="email"
-              className="px-4 py-3 rounded-xl border border-[#e2e8f0] bg-[rgba(15,23,42,0.02)] text-[#0f172a] text-base outline-none transition-colors focus:border-[#1e3a8a]"
+              className="px-4 py-3 border-b border-[#e2e8f0] bg-transparent text-[#0f172a] text-base outline-none transition-colors focus:border-[#111827]"
             />
           </div>
           <div className="flex flex-col gap-1.5">
-            <label htmlFor="message" className="text-[0.85rem] font-semibold text-[#111827]">お問い合わせ内容</label>
+            <label htmlFor="message" className="text-[0.7rem] tracking-[0.3em] uppercase text-[#94a3b8] font-medium">
+              {t ? 'お問い合わせ内容' : 'Message'}
+            </label>
             <textarea
               id="message"
               rows={6}
-              className="px-4 py-3 rounded-xl border border-[#e2e8f0] bg-[rgba(15,23,42,0.02)] text-[#0f172a] text-base outline-none transition-colors focus:border-[#1e3a8a] resize-vertical"
+              className="px-4 py-3 border-b border-[#e2e8f0] bg-transparent text-[#0f172a] text-base outline-none transition-colors focus:border-[#111827] resize-vertical"
             />
           </div>
           <button
             type="submit"
-            className="self-start inline-flex items-center justify-center px-7 py-3 rounded-full font-semibold bg-gradient-to-br from-[#111827] to-[#1e3a8a] text-[#f8fafc] border-none cursor-pointer shadow-[0_16px_34px_rgba(15,23,42,0.32)] transition-all duration-200 hover:-translate-y-px hover:shadow-[0_20px_40px_rgba(15,23,42,0.36)]"
+            className="self-start mt-4 px-8 py-3 text-[0.82rem] font-medium tracking-[0.15em] uppercase text-white bg-[#111827] rounded-full border-none cursor-pointer transition-opacity duration-200 hover:opacity-80"
           >
-            送信する
+            {t ? '送信する' : 'Submit'}
           </button>
         </form>
-      </section>
+      </div>
     </div>
   )
 }

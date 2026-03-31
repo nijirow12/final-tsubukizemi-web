@@ -3,20 +3,20 @@
 import { useState } from 'react'
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
+import { useLanguage } from '@/lib/language-context'
 
 const navItems = [
-  { href: '/home', label: 'ホーム' },
-  { href: '/about', label: 'About' },
-  { href: '/activities', label: '活動内容' },
-  { href: '/members', label: 'メンバー' },
-  { href: '/contact', label: 'お問い合わせ' },
+  { href: '/home', ja: 'ホーム', en: 'Home' },
+  { href: '/about', ja: 'About', en: 'About' },
+  { href: '/activities', ja: '活動内容', en: 'Activities' },
+  { href: '/members', ja: 'メンバー', en: 'Members' },
+  { href: '/contact', ja: 'お問い合わせ', en: 'Contact' },
 ]
 
 const socialLinks = [
   { href: 'https://www.instagram.com/emcglobalzemi2025/', label: 'Instagram', icon: InstagramIcon },
   { href: 'https://x.com/emc_global_zemi', label: 'Twitter', icon: TwitterIcon },
   { href: 'https://www.facebook.com/emcglobalzemi12/?locale=ja_JP', label: 'Facebook', icon: FacebookIcon },
-  { href: 'https://note.com/mu_emc/n/n4b922216452b', label: 'note', icon: NoteIcon },
 ]
 
 function InstagramIcon() {
@@ -44,23 +44,9 @@ function FacebookIcon() {
   return (
     <svg width="18" height="18" viewBox="0 0 24 24" fill="none" aria-hidden="true">
       <path
-        d="M13.5 8.25V6.75c0-.93.75-1.68 1.68-1.68H16.5V3h-1.32A3.93 3.93 0 0 0 11.25 6.9v1.35H9.75V12h1.5v9h2.25v-9h1.86l.27-2.7h-2.13z"
+        d="M24 12c0-6.627-5.373-12-12-12S0 5.373 0 12c0 5.99 4.388 10.954 10.125 11.854V15.47H7.078V12h3.047V9.356c0-3.007 1.792-4.668 4.533-4.668 1.312 0 2.686.235 2.686.235v2.953H15.83c-1.491 0-1.956.926-1.956 1.875V12h3.328l-.532 3.47h-2.796v8.384C19.612 22.954 24 17.99 24 12z"
         fill="currentColor"
       />
-    </svg>
-  )
-}
-
-function NoteIcon() {
-  return (
-    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" aria-hidden="true">
-      <path
-        d="M6.5 5.25h11a.75.75 0 0 1 .75.75v12a.75.75 0 0 1-1.18.6l-3.32-2.49a.75.75 0 0 0-.45-.15H6.5a.75.75 0 0 1-.75-.75V6a.75.75 0 0 1 .75-.75z"
-        stroke="currentColor"
-        strokeWidth="1.5"
-      />
-      <path d="M8.5 9.5h7" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" />
-      <path d="M8.5 12h4" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" />
     </svg>
   )
 }
@@ -68,6 +54,7 @@ function NoteIcon() {
 export default function Header({ className = '' }: { className?: string }) {
   const pathname = usePathname()
   const [menuOpen, setMenuOpen] = useState(false)
+  const { lang, setLang } = useLanguage()
 
   return (
     <header
@@ -77,7 +64,7 @@ export default function Header({ className = '' }: { className?: string }) {
         <Link href="/home" className="no-underline text-inherit flex flex-col gap-0.5 md:gap-1 shrink-0">
           <span className="text-[clamp(0.9rem,2.5vw,1.35rem)] font-semibold tracking-[0.3em] md:tracking-[0.4em]">TSUBUKI SEMINAR</span>
           <span className="text-[clamp(0.5rem,1.2vw,0.7rem)] tracking-[0.14em] md:tracking-[0.18em] text-[#64748b] uppercase">
-            武蔵野大学アントレプレナーシップ学部 グローバルゼミ
+            {lang === 'ja' ? '武蔵野大学アントレプレナーシップ学部 グローバルゼミ' : 'Musashino University, Faculty of Entrepreneurship'}
           </span>
         </Link>
 
@@ -94,7 +81,7 @@ export default function Header({ className = '' }: { className?: string }) {
                       className={`no-underline text-[#1f2937] text-[0.78rem] font-semibold tracking-[0.22em] uppercase relative pb-0.5 transition-colors duration-200 after:content-[''] after:absolute after:left-0 after:bottom-0 after:w-full after:h-px after:bg-current after:origin-center after:transition-transform after:duration-200 ${isActive ? 'text-[#111827] after:scale-x-100' : 'after:scale-x-0 hover:text-[#111827] hover:after:scale-x-100'}`}
                       aria-current={isActive ? 'page' : undefined}
                     >
-                      {item.label}
+                      {lang === 'ja' ? item.ja : item.en}
                     </Link>
                   </li>
                 )
@@ -119,13 +106,19 @@ export default function Header({ className = '' }: { className?: string }) {
           </ul>
 
           <div className="inline-flex items-center gap-[0.3rem] pl-[0.9rem] border-l border-[#111827]/18" aria-label="言語切り替え">
-            <Link href="/home" className="text-[0.72rem] tracking-[0.28em] uppercase no-underline font-semibold text-[#111827]">
+            <button
+              onClick={() => setLang('ja')}
+              className={`text-[0.72rem] tracking-[0.28em] uppercase font-semibold bg-transparent border-none cursor-pointer ${lang === 'ja' ? 'text-[#111827]' : 'text-[#111827]/35'}`}
+            >
               JA
-            </Link>
+            </button>
             <span className="text-[0.72rem] tracking-[0.28em] text-[#111827]/35">/</span>
-            <Link href="/home" className="text-[0.72rem] tracking-[0.28em] uppercase no-underline font-semibold text-[#111827]/50">
+            <button
+              onClick={() => setLang('en')}
+              className={`text-[0.72rem] tracking-[0.28em] uppercase font-semibold bg-transparent border-none cursor-pointer ${lang === 'en' ? 'text-[#111827]' : 'text-[#111827]/35'}`}
+            >
               EN
-            </Link>
+            </button>
           </div>
         </div>
 
@@ -155,7 +148,7 @@ export default function Header({ className = '' }: { className?: string }) {
                       onClick={() => setMenuOpen(false)}
                       className={`no-underline text-[0.9rem] font-semibold tracking-[0.18em] uppercase ${isActive ? 'text-[#111827]' : 'text-[#475569]'}`}
                     >
-                      {item.label}
+                      {lang === 'ja' ? item.ja : item.en}
                     </Link>
                   </li>
                 )

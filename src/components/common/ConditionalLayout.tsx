@@ -8,6 +8,7 @@ export default function ConditionalLayout({ children }: { children: React.ReactN
   const pathname = usePathname()
   const isLanding = pathname === '/'
   const isGlobePage = pathname === '/home'
+  const isGlobeContentPage = ['/about', '/activities', '/members', '/contact'].includes(pathname)
 
   if (isLanding) {
     return <>{children}</>
@@ -20,6 +21,17 @@ export default function ConditionalLayout({ children }: { children: React.ReactN
         <Header />
         {children}
       </>
+    )
+  }
+
+  // about / activities / members: ヘッダー＋フッターあり、地球儀ヒーロー用にmain wrapper無し
+  if (isGlobeContentPage) {
+    return (
+      <div className="min-h-screen flex flex-col">
+        <Header />
+        <div className="flex-1">{children}</div>
+        <Footer />
+      </div>
     )
   }
 

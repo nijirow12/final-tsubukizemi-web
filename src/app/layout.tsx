@@ -1,6 +1,7 @@
 import type { Metadata } from 'next'
 import './globals.css'
 import ConditionalLayout from '@/components/common/ConditionalLayout'
+import { LanguageProvider } from '@/lib/language-context'
 
 export const metadata: Metadata = {
   title: '津吹ゼミ | TSUBUKI SEMINAR',
@@ -21,7 +22,9 @@ export default function RootLayout({
         <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet" />
       </head>
       <body>
-        <ConditionalLayout>{children}</ConditionalLayout>
+        <LanguageProvider>
+          <ConditionalLayout>{children}</ConditionalLayout>
+        </LanguageProvider>
       </body>
     </html>
   )

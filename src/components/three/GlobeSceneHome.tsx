@@ -4,7 +4,7 @@ import { useEffect, useRef, useState, useCallback } from 'react'
 import * as THREE from 'three'
 import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls.js'
 import { PIN_COORDINATES, type CountryId } from '@/data/pin-coordinates'
-import { fetchAllDriveImages, type DriveImage } from '@/lib/google-drive'
+import { fetchAllDriveImagesProgressive, type DriveImage } from '@/lib/google-drive'
 
 // --- Photo positions: オリジナル12枠 ---
 const PHOTO_POSITIONS_DESKTOP: { top: string; left?: string; right?: string; rotate: number }[] = [
@@ -216,24 +216,29 @@ function PhotoBurst({
 
   return (
     <div ref={wrapperRef}>
-      <div className="absolute top-[9%] md:top-[15%] left-1/2 -translate-x-1/2 z-30 text-center pointer-events-none" style={{ animation: 'fadeSlideIn 0.3s ease-out both' }}>
-        <h3 className="text-lg md:text-2xl font-semibold tracking-[0.12em] text-[#0f172a]">
-          {PIN_COORDINATES[selectedPin].labelJa}
-        </h3>
-        <p className="text-[0.75rem] md:text-[0.85rem] text-[#64748b] tracking-[0.08em]">
-          {PIN_COORDINATES[selectedPin].label} — {pinImages.length} photos
-        </p>
-      </div>
-
-      {/* Big country name background */}
+      {/* Big country name — curved along globe surface */}
       {!albumOpen && (
-        <div className="absolute inset-0 z-[15] flex items-center justify-center pointer-events-none" style={{ animation: 'fadeSlideIn 0.5s ease-out both', paddingBottom: '35%' }}>
-          <span
-            className="text-[clamp(2.5rem,12vw,8rem)] font-black uppercase tracking-[0.15em] text-white select-none leading-none"
-            style={{ textShadow: '0 4px 30px rgba(0,0,0,0.15), 0 1px 8px rgba(0,0,0,0.1)' }}
-          >
-            {PIN_COORDINATES[selectedPin].label}
-          </span>
+        <div className="absolute inset-0 z-[15] flex items-center justify-center pointer-events-none" style={{ animation: 'fadeSlideIn 0.5s ease-out both', paddingBottom: '10%' }}>
+          <svg viewBox="0 0 1000 300" className="w-[clamp(300px,80vw,900px)]" overflow="visible">
+            <defs>
+              <path id={`curve-${selectedPin}`} d="M 50,260 A 600,600 0 0,1 950,260" fill="none" />
+            </defs>
+            <text
+              fill="white"
+              style={{ filter: 'drop-shadow(0 3px 12px rgba(0,0,0,0.5)) drop-shadow(0 0 40px rgba(0,0,0,0.35))' }}
+            >
+              <textPath
+                href={`#curve-${selectedPin}`}
+                startOffset="50%"
+                textAnchor="middle"
+                fontWeight="900"
+                fontSize="144"
+                letterSpacing="0.15em"
+              >
+                {PIN_COORDINATES[selectedPin].label.toUpperCase()}
+              </textPath>
+            </text>
+          </svg>
         </div>
       )}
 
@@ -354,6 +359,39 @@ function PhotoBurst({
   )
 }
 
+// --- Random global photos (no pin selected) ---
+function RandomGlobalPhotos({ driveImages }: { driveImages: Record<string, DriveImage[]> }) {
+  const isMobile = typeof window !== 'undefined' && window.innerWidth < 768
+
+  const [images] = useState(() => {
+    const allImages: { url: string }[] = []
+    for (const imgs of Object.values(driveImages)) {
+      for (const img of imgs) {
+        allImages.push({ url: img.url })
+      }
+    }
+    return allImages.sort(() => Math.random() - 0.5).slice(0, isMobile ? 12 : 15)
+  })
+
+  if (images.length === 0) return null
+
+  return (
+    <div className="absolute top-14 md:top-[4.5rem] left-0 right-0 bottom-0 z-0 grid grid-cols-4 md:grid-cols-5 auto-rows-fr">
+      {images.map((img, i) => (
+        <div
+          key={i}
+          className="overflow-hidden"
+          style={{
+            animation: `fadeSlideIn 0.4s ease-out ${i * 0.04}s both`,
+          }}
+        >
+          <img src={img.url} alt="" className="w-full h-full object-cover" loading="lazy" />
+        </div>
+      ))}
+    </div>
+  )
+}
+
 // --- Main component: starts in post-animation state ---
 export default function GlobeSceneHome() {
   const containerRef = useRef<HTMLDivElement>(null)
@@ -362,6 +400,7 @@ export default function GlobeSceneHome() {
   const [showClickHint, setShowClickHint] = useState(true)
   const [driveImages, setDriveImages] = useState<Record<string, DriveImage[]>>({})
   const [driveLoading, setDriveLoading] = useState(true)
+  const [allImagesLoaded, setAllImagesLoaded] = useState(false)
 
   // --- Init scene in post-animation state ---
   const initScene = useCallback(() => {
@@ -419,8 +458,8 @@ export default function GlobeSceneHome() {
     })
     earth.add(new THREE.Mesh(atmosGeo, atmosMat))
 
-    scene.add(new THREE.AmbientLight(0x404060, 1.8))
-    const dirLight = new THREE.DirectionalLight(0xffffff, 2.5)
+    scene.add(new THREE.AmbientLight(0x606880, 2.4))
+    const dirLight = new THREE.DirectionalLight(0xffffff, 3.2)
     dirLight.position.set(5, 3, 5)
     scene.add(dirLight)
     const backLight = new THREE.DirectionalLight(0x3366ff, 0.6)
@@ -572,12 +611,14 @@ export default function GlobeSceneHome() {
     }
   }, [])
 
-  // --- Fetch Google Drive images ---
+  // --- Fetch Google Drive images progressively ---
   useEffect(() => {
-    fetchAllDriveImages()
-      .then((images) => setDriveImages(images))
-      .catch(() => {})
-      .finally(() => setDriveLoading(false))
+    fetchAllDriveImagesProgressive((images) => {
+      setDriveImages(images)
+      setDriveLoading(false)
+    })
+      .then(() => setAllImagesLoaded(true))
+      .catch(() => setDriveLoading(false))
   }, [])
 
   const driveImgs = selectedPin ? (driveImages[selectedPin] || []) : []
@@ -599,6 +640,10 @@ export default function GlobeSceneHome() {
       )}
 
 
+
+      {!selectedPin && allImagesLoaded && (
+        <RandomGlobalPhotos driveImages={driveImages} />
+      )}
 
       {selectedPin && !driveLoading && (
         <PhotoBurst

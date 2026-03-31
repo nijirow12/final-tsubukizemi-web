@@ -86,3 +86,22 @@ export async function fetchAllDriveImages(): Promise<Record<CountryId, DriveImag
   await Promise.all(fetches)
   return result as Record<CountryId, DriveImage[]>
 }
+
+/**
+ * 全国の画像を逐次取得（1カ国取得するたびにコールバック）
+ */
+export async function fetchAllDriveImagesProgressive(
+  onUpdate: (images: Record<CountryId, DriveImage[]>) => void
+): Promise<void> {
+  const folderMap = await fetchDriveFolderMap()
+  const result: Partial<Record<CountryId, DriveImage[]>> = {}
+
+  const entries = Object.entries(folderMap) as [CountryId, string][]
+  const fetches = entries.map(async ([countryId, folderId]) => {
+    const images = await fetchDriveImages(folderId)
+    result[countryId] = images
+    onUpdate({ ...result } as Record<CountryId, DriveImage[]>)
+  })
+
+  await Promise.all(fetches)
+}

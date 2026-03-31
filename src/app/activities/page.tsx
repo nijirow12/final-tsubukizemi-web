@@ -1,35 +1,36 @@
+'use client'
+
+import InstagramFeed from '@/components/sections/InstagramFeed'
+import { useLanguage } from '@/lib/language-context'
+
 export default function ActivitiesPage() {
+  const { lang } = useLanguage()
+  const t = lang === 'ja'
+
   return (
-    <div className="flex flex-col gap-12">
-      <section className="bg-white rounded-3xl px-[2.8rem] py-[2.6rem] shadow-[0_22px_40px_rgba(15,23,42,0.1)] flex flex-col gap-7">
-        <div className="flex flex-col gap-2.5">
-          <p className="m-0 text-2xl tracking-[0.14em] uppercase text-[#0f172a]">ACTIVITIES</p>
-          <p className="m-0 text-[0.95rem] text-[#475569] max-w-[660px] leading-[1.7]">
-            津吹ゼミの活動内容を紹介します。
-          </p>
-        </div>
+    <div className="bg-white min-h-screen">
+      {/* Hero */}
+      <div className="pt-32 md:pt-36 pb-8 px-6 md:px-12 max-w-[960px] mx-auto">
+        <h1 className="text-[clamp(2.5rem,6vw,4rem)] font-extralight tracking-[0.2em] text-[#111827] leading-none">
+          ACTIVITIES
+        </h1>
+        <p className="mt-4 text-[#94a3b8] text-[0.78rem] tracking-[0.15em]">
+          {t ? '津吹ゼミの活動を紹介します' : 'Introducing the activities of Tsubuki Seminar'}
+        </p>
+      </div>
 
-        <div className="flex flex-col gap-5">
-          <h3 className="m-0 text-[1.2rem] font-semibold text-[#1e3a8a]">海外での挑戦</h3>
-          <p className="m-0 text-[#475569] leading-[1.7]">
-            東南アジアを中心に、屋台販売やKIZUNA Fesでの出店など、現地での実践的な活動を行っています。
+      {/* Content */}
+      <div className="max-w-[960px] mx-auto px-6 md:px-12 py-12 md:py-16">
+        <section>
+          <span className="text-[0.7rem] tracking-[0.3em] uppercase text-[#94a3b8] font-medium">
+            Instagram
+          </span>
+          <p className="mt-2 text-[0.85rem] text-[#94a3b8] mb-8">
+            {t ? '最新の活動はInstagramで発信しています' : 'Follow our latest activities on Instagram'}
           </p>
-        </div>
-
-        <div className="flex flex-col gap-5">
-          <h3 className="m-0 text-[1.2rem] font-semibold text-[#1e3a8a]">クラウドファンディング</h3>
-          <p className="m-0 text-[#475569] leading-[1.7]">
-            カンボジアの障がい者施設の支援など、社会課題解決に向けたプロジェクトを企画・実行しています。
-          </p>
-        </div>
-
-        <div className="flex flex-col gap-5">
-          <h3 className="m-0 text-[1.2rem] font-semibold text-[#1e3a8a]">Challenger訪問</h3>
-          <p className="m-0 text-[#475569] leading-[1.7]">
-            海外で挑戦する起業家やビジネスパーソンを訪問し、リアルなビジネスの現場を学びます。
-          </p>
-        </div>
-      </section>
+          <InstagramFeed />
+        </section>
+      </div>
     </div>
   )
 }
