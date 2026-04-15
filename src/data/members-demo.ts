@@ -1,0 +1,145 @@
+export type DemoMember = {
+  id: string
+  name: string              // 名前（日本語）
+  nameEn: string            // Name (English)
+  introduction: string      // 自己紹介文（日本語）
+  introductionEn: string    // Self-introduction (English)
+  projects: string          // プロジェクト・課外活動（日本語）
+  projectsEn: string        // Projects & Activities (English)
+  countries: string[]       // 行ったことある国・好きな国
+  socialUrl: string | null  // Facebook / Instagram / プロジェクト URL（任意）
+  photo: string | null      // 写真パス or URL
+  isOB: boolean             // true = OB/OG（卒業生）
+  grade: string | null      // "4年", "3年" etc. — 現役生のみ
+}
+
+export const demoMembers: DemoMember[] = [
+  // ── 現役生 ──────────────────────────────────────────────────────────
+  {
+    id: '1',
+    name: '山田 太郎',
+    nameEn: 'Taro Yamada',
+    introduction: '経済学部4年の山田です。ゼミではマーケティング戦略と東南アジアのスタートアップエコシステムについて研究しています。将来は海外で事業を立ち上げることが目標です。',
+    introductionEn: 'I am Taro, a 4th-year Economics student. In the seminar I research marketing strategy and the startup ecosystem in Southeast Asia. My goal is to launch my own business abroad.',
+    projects: 'カンボジアでの教育支援プロジェクトに参加中。学内ビジネスコンテストで優勝経験あり。',
+    projectsEn: 'Currently involved in an education support project in Cambodia. Winner of an on-campus business competition.',
+    countries: ['カンボジア', 'タイ', 'ベトナム', 'シンガポール'],
+    socialUrl: 'https://www.instagram.com/taro_yamada_example',
+    photo: null,
+    isOB: false,
+    grade: '4年',
+  },
+  {
+    id: '2',
+    name: '佐藤 花子',
+    nameEn: 'Hanako Sato',
+    introduction: '国際関係学を専攻しています。異文化コミュニケーションに興味があり、ゼミ活動を通じてグローバルな視野を広げています。',
+    introductionEn: 'I major in International Relations. I am passionate about cross-cultural communication and broadening my global perspective through seminar activities.',
+    projects: 'フィリピンの現地NGOと連携した貧困調査プロジェクトに従事。国際学会でポスター発表。',
+    projectsEn: 'Engaged in a poverty research project in partnership with a local NGO in the Philippines. Presented a poster at an international academic conference.',
+    countries: ['フィリピン', '韓国', 'オーストラリア'],
+    socialUrl: 'https://www.facebook.com/hanako.sato.example',
+    photo: null,
+    isOB: false,
+    grade: '4年',
+  },
+  {
+    id: '3',
+    name: '鈴木 一郎',
+    nameEn: 'Ichiro Suzuki',
+    introduction: '3年の鈴木です。データサイエンスとビジネスの融合に興味があります。プログラミングが好きで、Webアプリ開発にも取り組んでいます。',
+    introductionEn: 'I am Ichiro, a 3rd-year student interested in the intersection of data science and business. I enjoy programming and also work on web application development.',
+    projects: 'ゼミのWebサイト開発リーダー。個人でフリーランスのWeb制作も行っています。',
+    projectsEn: 'Lead developer for the seminar website. Also working as a freelance web developer independently.',
+    countries: ['アメリカ', 'カナダ', 'メキシコ'],
+    socialUrl: 'https://github.com/ichiro-suzuki-example',
+    photo: null,
+    isOB: false,
+    grade: '3年',
+  },
+  {
+    id: '4',
+    name: '田中 美咲',
+    nameEn: 'Misaki Tanaka',
+    introduction: '社会学専攻の田中です。フィールドワークが好きで、現地の人々と直接関わることを大切にしています。',
+    introductionEn: 'I am Misaki, a Sociology major. I love fieldwork and value direct engagement with local communities.',
+    projects: 'インドネシアの農村部でのフィールドリサーチ。地域活性化をテーマにした論文を執筆中。',
+    projectsEn: 'Field research in rural Indonesia. Currently writing a thesis on regional revitalization.',
+    countries: ['インドネシア', 'マレーシア', 'インド'],
+    socialUrl: null,
+    photo: null,
+    isOB: false,
+    grade: '3年',
+  },
+  {
+    id: '5',
+    name: '中村 健太',
+    nameEn: 'Kenta Nakamura',
+    introduction: '経営学部3年です。スタートアップのビジネスモデルに興味があり、起業を目指しています。ゼミでは海外のスタートアップ事例を分析しています。',
+    introductionEn: 'I am a 3rd-year Business student aiming to start my own company. In the seminar I analyze overseas startup case studies.',
+    projects: '学内のアントレプレナーシッププログラムに参加。ベトナムのIT企業でインターン経験あり。',
+    projectsEn: 'Participating in an on-campus entrepreneurship program. Completed an internship at an IT company in Vietnam.',
+    countries: ['ベトナム', 'タイ', '台湾', 'ドイツ'],
+    socialUrl: 'https://www.instagram.com/kenta_nakamura_example',
+    photo: null,
+    isOB: false,
+    grade: '3年',
+  },
+  {
+    id: '6',
+    name: '小林 さくら',
+    nameEn: 'Sakura Kobayashi',
+    introduction: '4年の小林です。国際ボランティアの経験から途上国の教育問題に関心を持ち、ゼミで研究を進めています。',
+    introductionEn: 'I am Sakura, a 4th-year student. My experience in international volunteering sparked my interest in education issues in developing countries, which I now research in the seminar.',
+    projects: 'ミャンマーの子ども支援NPOでボランティアコーディネーター。教育格差をテーマにした卒業論文を執筆中。',
+    projectsEn: 'Volunteer coordinator at an NPO supporting children in Myanmar. Writing my graduation thesis on educational inequality.',
+    countries: ['ミャンマー', 'ラオス', 'ネパール', 'スリランカ'],
+    socialUrl: 'https://www.facebook.com/sakura.kobayashi.example',
+    photo: null,
+    isOB: false,
+    grade: '4年',
+  },
+  // ── OB / OG ─────────────────────────────────────────────────────────
+  {
+    id: '7',
+    name: '高橋 誠',
+    nameEn: 'Makoto Takahashi',
+    introduction: '2023年卒。ゼミで培ったグローバル視点を活かし、現在は東南アジア向けのBtoB SaaSスタートアップに勤務しています。',
+    introductionEn: 'Class of 2023. Leveraging the global perspective I developed in the seminar, I now work at a B2B SaaS startup focused on Southeast Asia.',
+    projects: 'タイ・バンコクでの市場調査プロジェクト。ゼミOBネットワーク運営担当。',
+    projectsEn: 'Market research project in Bangkok, Thailand. Managing the seminar alumni network.',
+    countries: ['タイ', 'シンガポール', 'マレーシア', 'インド'],
+    socialUrl: 'https://www.linkedin.com/in/makoto-takahashi-example',
+    photo: null,
+    isOB: true,
+    grade: null,
+  },
+  {
+    id: '8',
+    name: '伊藤 あかね',
+    nameEn: 'Akane Ito',
+    introduction: '2022年卒。ゼミでの経験がきっかけで国際協力の道へ。現在はJICA関連事業でカンボジアに駐在中です。',
+    introductionEn: 'Class of 2022. The seminar inspired me to pursue international development. I am currently stationed in Cambodia working on a JICA-related project.',
+    projects: 'カンボジア農村部での水衛生改善プロジェクト。NGO連携による女性起業支援プログラムに従事。',
+    projectsEn: 'Water and sanitation improvement project in rural Cambodia. Involved in a women\'s entrepreneurship support program in collaboration with an NGO.',
+    countries: ['カンボジア', 'ミャンマー', 'ラオス', 'フィリピン', 'スリランカ'],
+    socialUrl: null,
+    photo: null,
+    isOB: true,
+    grade: null,
+  },
+  {
+    id: '9',
+    name: '渡辺 涼太',
+    nameEn: 'Ryota Watanabe',
+    introduction: '2024年卒。在学中に立ち上げた越境ECの事業が軌道に乗り、現在は法人化して代表を務めています。',
+    introductionEn: 'Class of 2024. The cross-border e-commerce business I started as a student gained traction and is now incorporated, with me serving as CEO.',
+    projects: '日本の工芸品をASEANへ展開する越境ECサービスを創業。学生時代から継続中。',
+    projectsEn: 'Founded a cross-border e-commerce service bringing Japanese crafts to ASEAN markets. A venture started during my student years, still going strong.',
+    countries: ['ベトナム', 'インドネシア', 'タイ', 'フランス'],
+    socialUrl: 'https://www.instagram.com/ryota_watanabe_example',
+    photo: null,
+    isOB: true,
+    grade: null,
+  },
+]

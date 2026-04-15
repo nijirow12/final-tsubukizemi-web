@@ -7,9 +7,20 @@ import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls.js'
 import { PIN_COORDINATES, type CountryId } from '@/data/pin-coordinates'
 import Header from '@/components/common/Header'
 import { fetchAllDriveImagesProgressive, type DriveImage } from '@/lib/google-drive'
+import { useLanguage } from '@/lib/language-context'
 
-const REPEL_RADIUS = 180
-const REPEL_STRENGTH = 50
+// --- Distance from Japan (Haversine) ---
+const JAPAN_LAT = 36.2048
+const JAPAN_LNG = 138.2529
+function distanceFromJapanKm(lat: number, lng: number): number {
+  const R = 6371
+  const dLat = (lat - JAPAN_LAT) * Math.PI / 180
+  const dLng = (lng - JAPAN_LNG) * Math.PI / 180
+  const a =
+    Math.sin(dLat / 2) ** 2 +
+    Math.cos(JAPAN_LAT * Math.PI / 180) * Math.cos(lat * Math.PI / 180) * Math.sin(dLng / 2) ** 2
+  return Math.round(R * 2 * Math.asin(Math.sqrt(a)) / 100) * 100
+}
 
 // --- Constants ---
 const EARTH_RADIUS = 5
@@ -123,7 +134,7 @@ type SceneRefs = {
   selectedPinId: CountryId | null
 }
 
-// --- Photo burst with cursor repel ---
+// --- Photo burst ---
 function PhotoBurst({
   selectedPin,
   pinImages,
@@ -131,61 +142,6 @@ function PhotoBurst({
   selectedPin: CountryId
   pinImages: { url: string; permalink: string }[]
 }) {
-  const wrapperRef = useRef<HTMLDivElement>(null)
-  const mouseRef = useRef({ x: -9999, y: -9999 })
-  const rafRef = useRef<number>(0)
-
-  useEffect(() => {
-    const wrapper = wrapperRef.current
-    if (!wrapper) return
-
-    const onMouseMove = (e: MouseEvent) => {
-      mouseRef.current = { x: e.clientX, y: e.clientY }
-    }
-    const onMouseLeave = () => {
-      mouseRef.current = { x: -9999, y: -9999 }
-    }
-
-    const updateRepel = () => {
-      const cards = wrapper.querySelectorAll<HTMLElement>('[data-photo]')
-      const { x: mx, y: my } = mouseRef.current
-
-      cards.forEach((card) => {
-        const rect = card.getBoundingClientRect()
-        const cx = rect.left + rect.width / 2
-        const cy = rect.top + rect.height / 2
-        const dx = cx - mx
-        const dy = cy - my
-        const dist = Math.sqrt(dx * dx + dy * dy)
-
-        if (dist < REPEL_RADIUS && dist > 0) {
-          const force = (1 - dist / REPEL_RADIUS) * REPEL_STRENGTH
-          const tx = (dx / dist) * force
-          const ty = (dy / dist) * force
-          const scale = 1 + (1 - dist / REPEL_RADIUS) * 0.1
-          card.style.translate = `${tx}px ${ty}px`
-          card.style.scale = `${scale}`
-          card.style.zIndex = '25'
-        } else {
-          card.style.translate = ''
-          card.style.scale = ''
-          card.style.zIndex = ''
-        }
-      })
-
-      rafRef.current = requestAnimationFrame(updateRepel)
-    }
-
-    document.addEventListener('mousemove', onMouseMove)
-    document.addEventListener('mouseleave', onMouseLeave)
-    rafRef.current = requestAnimationFrame(updateRepel)
-
-    return () => {
-      document.removeEventListener('mousemove', onMouseMove)
-      document.removeEventListener('mouseleave', onMouseLeave)
-      cancelAnimationFrame(rafRef.current)
-    }
-  }, [])
 
   // ピンが変わるたびにランダムに20枚抽出（keyでremountされるので毎回実行）
   const isMobile = typeof window !== 'undefined' && window.innerWidth < 768
@@ -210,30 +166,23 @@ function PhotoBurst({
   }, [lightboxIndex, pinImages.length])
 
   return (
-    <div ref={wrapperRef}>
-      {/* Big country name — curved along globe surface */}
+    <>
+      {/* Country name — between header and globe */}
       {!albumOpen && (
-        <div className="absolute inset-0 z-[15] flex items-center justify-center pointer-events-none" style={{ animation: 'fadeSlideIn 0.5s ease-out both', paddingBottom: '10%' }}>
-          <svg viewBox="0 0 1000 300" className="w-[clamp(300px,80vw,900px)]" overflow="visible">
-            <defs>
-              <path id={`curve-${selectedPin}`} d="M 50,260 A 600,600 0 0,1 950,260" fill="none" />
-            </defs>
-            <text
-              fill="white"
-              style={{ filter: 'drop-shadow(0 3px 12px rgba(0,0,0,0.5)) drop-shadow(0 0 40px rgba(0,0,0,0.35))' }}
-            >
-              <textPath
-                href={`#curve-${selectedPin}`}
-                startOffset="50%"
-                textAnchor="middle"
-                fontWeight="900"
-                fontSize="144"
-                letterSpacing="0.15em"
-              >
-                {PIN_COORDINATES[selectedPin].label.toUpperCase()}
-              </textPath>
-            </text>
-          </svg>
+        <div
+          className="absolute left-0 right-0 z-[15] flex justify-center pointer-events-none"
+          style={{ top: '22%', animation: 'fadeSlideIn 0.5s ease-out both' }}
+        >
+          <div className="flex flex-col items-center gap-0.5 bg-black/40 backdrop-blur-md rounded-2xl px-6 py-2.5 border border-white/15">
+            <span className="text-white font-bold text-[clamp(1.1rem,2.2vw,1.6rem)] tracking-[0.2em] uppercase">
+              📍 {PIN_COORDINATES[selectedPin].label.toUpperCase()}
+            </span>
+            {selectedPin !== 'japan' && (
+              <span className="text-white/75 text-[clamp(0.65rem,1vw,0.8rem)] tracking-[0.1em]">
+                日本から約 {distanceFromJapanKm(PIN_COORDINATES[selectedPin].lat, PIN_COORDINATES[selectedPin].lng).toLocaleString()} km
+              </span>
+            )}
+          </div>
         </div>
       )}
 
@@ -243,14 +192,15 @@ function PhotoBurst({
           {images.map((img, i) => (
             <div
               key={i}
-              data-photo
-              className="overflow-hidden"
-              style={{
-                animation: `fadeSlideIn 0.4s ease-out ${i * 0.04}s both`,
-                transition: 'translate 0.25s ease-out, scale 0.25s ease-out',
-              }}
+              className="overflow-hidden pointer-events-none"
             >
-              <img src={img.url} alt="" className="w-full h-full object-cover" loading="lazy" />
+              <img
+                src={img.url}
+                alt=""
+                className="w-full h-full object-cover"
+                style={{ opacity: 0, transition: `opacity 0.5s ease-out ${i * 0.04}s` }}
+                onLoad={(e) => { (e.target as HTMLImageElement).style.opacity = '1' }}
+              />
             </div>
           ))}
         </div>
@@ -369,7 +319,7 @@ function PhotoBurst({
           </div>
         </div>
       )}
-    </div>
+    </>
   )
 }
 
@@ -392,14 +342,14 @@ function RandomGlobalPhotos({ driveImages }: { driveImages: Record<string, Drive
   return (
     <div className="absolute top-14 md:top-[4.5rem] left-0 right-0 bottom-0 z-0 grid grid-cols-4 md:grid-cols-5 auto-rows-fr">
       {images.map((img, i) => (
-        <div
-          key={i}
-          className="overflow-hidden"
-          style={{
-            animation: `fadeSlideIn 0.4s ease-out ${i * 0.04}s both`,
-          }}
-        >
-          <img src={img.url} alt="" className="w-full h-full object-cover" loading="lazy" />
+        <div key={i} className="overflow-hidden pointer-events-none">
+          <img
+            src={img.url}
+            alt=""
+            className="w-full h-full object-cover"
+            style={{ opacity: 0, transition: `opacity 0.5s ease-out ${i * 0.04}s` }}
+            onLoad={(e) => { (e.target as HTMLImageElement).style.opacity = '1' }}
+          />
         </div>
       ))}
     </div>
@@ -407,6 +357,7 @@ function RandomGlobalPhotos({ driveImages }: { driveImages: Record<string, Drive
 }
 
 export default function GlobeScene() {
+  const { lang } = useLanguage()
   const containerRef = useRef<HTMLDivElement>(null)
   const sceneRef = useRef<SceneRefs | null>(null)
   const [phase, setPhase] = useState<'idle' | 'zooming' | 'interactive'>('idle')
@@ -670,7 +621,7 @@ export default function GlobeScene() {
                 })
 
                 const dropStart = Date.now()
-                const DROP_DURATION = 300
+                const DROP_DURATION = 420
                 const animateDrop = () => {
                   const dt2 = Math.min((Date.now() - dropStart) / DROP_DURATION, 1)
                   const eased = dt2 < 0.7
@@ -691,7 +642,7 @@ export default function GlobeScene() {
                 animateDrop()
 
                 idx++
-                setTimeout(dropNextPin, 250)
+                setTimeout(dropNextPin, 70)
               } else {
                 setPhase('interactive')
                 setShowClickHint(true)
@@ -831,7 +782,7 @@ export default function GlobeScene() {
             <path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7zm0 9.5a2.5 2.5 0 1 1 0-5 2.5 2.5 0 0 1 0 5z" fill="currentColor"/>
           </svg>
           <span className="text-[0.82rem] font-semibold text-[#0f172a] tracking-[0.04em]">
-            ピンをクリックして活動写真を見る
+            {lang === 'ja' ? 'ピンをクリックして活動写真を見る' : 'Click a pin to see activity photos'}
           </span>
         </div>
       )}
@@ -868,7 +819,10 @@ export default function GlobeScene() {
 
       {/* Random global photos — shown after animation, before pin selection */}
       {phase === 'interactive' && !selectedPin && Object.keys(driveImages).length > 0 && (
-        <RandomGlobalPhotos driveImages={driveImages} />
+        <RandomGlobalPhotos
+          key={allImagesLoaded ? 'all' : 'initial'}
+          driveImages={driveImages}
+        />
       )}
 
       {/* Photos burst around globe — wait for data load, key on selectedPin to force remount */}
