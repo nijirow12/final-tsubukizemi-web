@@ -41,7 +41,15 @@ async function listAllCountryFolders() {
 export async function GET() {
   try {
     const folders = await listAllCountryFolders()
-    return NextResponse.json({ folders })
+    return NextResponse.json(
+      { folders },
+      {
+        headers: {
+          'Cache-Control':
+            'public, max-age=3600, s-maxage=3600, stale-while-revalidate=86400',
+        },
+      }
+    )
   } catch (err: unknown) {
     const message = err instanceof Error ? err.message : 'Unknown error'
     console.error('Error listing folders:', message)

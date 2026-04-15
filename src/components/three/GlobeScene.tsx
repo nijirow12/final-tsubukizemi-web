@@ -337,7 +337,43 @@ function RandomGlobalPhotos({ driveImages }: { driveImages: Record<string, Drive
     return allImages.sort(() => Math.random() - 0.5).slice(0, isMobile ? 12 : 15)
   })
 
-  if (images.length === 0) return null
+  // Preload every picked image via decode() before mounting the grid,
+  // so the staggered CSS transition isn't scrambled by slow individual loads.
+  const [ready, setReady] = useState(false)
+  const [visible, setVisible] = useState(false)
+
+  useEffect(() => {
+    if (images.length === 0) return
+    let cancelled = false
+    const preload = images.map(
+      (img) =>
+        new Promise<void>((resolve) => {
+          const el = new Image()
+          el.src = img.url
+          const done = () => resolve()
+          if (el.decode) {
+            el.decode().then(done, done)
+          } else {
+            el.onload = done
+            el.onerror = done
+          }
+        })
+    )
+    // Cap the wait so a single slow image can't hold the whole reveal hostage.
+    const timeout = new Promise<void>((resolve) => setTimeout(resolve, 4000))
+    Promise.race([Promise.all(preload), timeout]).then(() => {
+      if (cancelled) return
+      setReady(true)
+      requestAnimationFrame(() => {
+        requestAnimationFrame(() => setVisible(true))
+      })
+    })
+    return () => {
+      cancelled = true
+    }
+  }, [images])
+
+  if (images.length === 0 || !ready) return null
 
   return (
     <div className="absolute top-14 md:top-[4.5rem] left-0 right-0 bottom-0 z-0 grid grid-cols-4 md:grid-cols-5 auto-rows-fr">
@@ -347,8 +383,10 @@ function RandomGlobalPhotos({ driveImages }: { driveImages: Record<string, Drive
             src={img.url}
             alt=""
             className="w-full h-full object-cover"
-            style={{ opacity: 0, transition: `opacity 0.5s ease-out ${i * 0.04}s` }}
-            onLoad={(e) => { (e.target as HTMLImageElement).style.opacity = '1' }}
+            style={{
+              opacity: visible ? 1 : 0,
+              transition: `opacity 0.5s ease-out ${i * 0.04}s`,
+            }}
           />
         </div>
       ))}
@@ -758,9 +796,25 @@ export default function GlobeScene() {
   // --- Fetch Google Drive images progressively ---
   useEffect(() => {
     setDriveLoading(true)
+    const warmed = new Set<string>()
+    // Kick off a browser fetch for each newly-discovered image URL so they
+    // populate the HTTP cache while the user watches the intro animation.
+    // By the time the grid mounts, decode() resolves near-instantly and the
+    // staggered CSS fade can play as intended.
+    const warmCache = (images: Record<string, DriveImage[]>) => {
+      for (const list of Object.values(images)) {
+        for (const img of list) {
+          if (warmed.has(img.url)) continue
+          warmed.add(img.url)
+          const el = new Image()
+          el.src = img.url
+        }
+      }
+    }
     fetchAllDriveImagesProgressive((images) => {
       setDriveImages(images)
       setDriveLoading(false)
+      warmCache(images)
     })
       .then(() => setAllImagesLoaded(true))
       .catch(() => setDriveLoading(false))

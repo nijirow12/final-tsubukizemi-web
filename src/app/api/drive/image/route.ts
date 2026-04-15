@@ -15,6 +15,9 @@ export async function GET(request: NextRequest) {
       fields: 'thumbnailLink',
     })
 
+    const IMMUTABLE_CACHE =
+      'public, max-age=31536000, s-maxage=31536000, stale-while-revalidate=86400, immutable'
+
     // 全画像をthumbnailLink経由で軽量JPEG配信（HEIC対応 + 軽量化）
     if (meta.data.thumbnailLink) {
       const thumbUrl = meta.data.thumbnailLink.replace(/=s\d+$/, '=s600')
@@ -24,7 +27,7 @@ export async function GET(request: NextRequest) {
         return new NextResponse(data, {
           headers: {
             'Content-Type': 'image/jpeg',
-            'Cache-Control': 'public, max-age=86400',
+            'Cache-Control': IMMUTABLE_CACHE,
           },
         })
       }
@@ -39,7 +42,7 @@ export async function GET(request: NextRequest) {
     return new NextResponse(response.data as ArrayBuffer, {
       headers: {
         'Content-Type': 'image/jpeg',
-        'Cache-Control': 'public, max-age=86400',
+        'Cache-Control': IMMUTABLE_CACHE,
       },
     })
   } catch (err: unknown) {

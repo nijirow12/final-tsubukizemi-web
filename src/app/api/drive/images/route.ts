@@ -21,10 +21,18 @@ export async function GET(request: NextRequest) {
       orderBy: 'createdTime desc',
     })
 
-    return NextResponse.json({
-      files: response.data.files || [],
-      nextPageToken: response.data.nextPageToken || null,
-    })
+    return NextResponse.json(
+      {
+        files: response.data.files || [],
+        nextPageToken: response.data.nextPageToken || null,
+      },
+      {
+        headers: {
+          'Cache-Control':
+            'public, max-age=3600, s-maxage=3600, stale-while-revalidate=86400',
+        },
+      }
+    )
   } catch (err: unknown) {
     const message = err instanceof Error ? err.message : 'Unknown error'
     console.error('Error listing images:', message)
