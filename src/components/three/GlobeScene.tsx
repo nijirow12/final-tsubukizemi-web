@@ -829,7 +829,7 @@ export default function GlobeScene() {
             fontFamily: 'inherit',
           }}
         >
-          GO ASIA!
+          こんにちは
         </button>
         <p className="text-[clamp(0.5rem,0.8vw,0.65rem)] tracking-[0.35em] uppercase text-[rgba(255,255,255,0.4)] font-light">
           武蔵野大学 アントレプレナーシップ学部 津吹ゼミ
