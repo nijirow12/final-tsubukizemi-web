@@ -71,6 +71,21 @@ export async function fetchDriveImages(folderId: string): Promise<DriveImage[]> 
 }
 
 /**
+ * 複数画像をサーバー側で並列取得し、base64 data URI で返す（1 RTT）
+ */
+export async function fetchBatchImageData(
+  fileIds: string[]
+): Promise<Record<string, string>> {
+  if (fileIds.length === 0) return {}
+  const res = await fetch(
+    `/api/drive/batch-images?fileIds=${fileIds.map(encodeURIComponent).join(',')}`
+  )
+  if (!res.ok) return {}
+  const data: { images: Record<string, string> } = await res.json()
+  return data.images
+}
+
+/**
  * 全国の画像を一括取得
  */
 export async function fetchAllDriveImages(): Promise<Record<CountryId, DriveImage[]>> {

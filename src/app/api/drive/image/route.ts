@@ -20,7 +20,7 @@ export async function GET(request: NextRequest) {
 
     // 全画像をthumbnailLink経由で軽量JPEG配信（HEIC対応 + 軽量化）
     if (meta.data.thumbnailLink) {
-      const thumbUrl = meta.data.thumbnailLink.replace(/=s\d+$/, '=s600')
+      const thumbUrl = meta.data.thumbnailLink.replace(/=s\d+$/, '=s400')
       const thumbRes = await fetch(thumbUrl)
       if (thumbRes.ok) {
         const data = await thumbRes.arrayBuffer()

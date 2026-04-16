@@ -4,7 +4,7 @@ import { useEffect, useRef, useState, useCallback } from 'react'
 import * as THREE from 'three'
 import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls.js'
 import { PIN_COORDINATES, type CountryId } from '@/data/pin-coordinates'
-import { fetchAllDriveImagesProgressive, type DriveImage } from '@/lib/google-drive'
+import { fetchAllDriveImagesProgressive, fetchBatchImageData, type DriveImage } from '@/lib/google-drive'
 import { useLanguage } from '@/lib/language-context'
 
 // --- Distance from Japan (Haversine) ---
@@ -313,67 +313,51 @@ function PhotoBurst({
 function RandomGlobalPhotos({ driveImages }: { driveImages: Record<string, DriveImage[]> }) {
   const isMobile = typeof window !== 'undefined' && window.innerWidth < 768
 
-  const [images] = useState(() => {
-    const allImages: { url: string }[] = []
+  const [picked] = useState(() => {
+    const all: DriveImage[] = []
     for (const imgs of Object.values(driveImages)) {
-      for (const img of imgs) {
-        allImages.push({ url: img.url })
-      }
+      for (const img of imgs) all.push(img)
     }
-    return allImages.sort(() => Math.random() - 0.5).slice(0, isMobile ? 12 : 15)
+    return all.sort(() => Math.random() - 0.5).slice(0, isMobile ? 12 : 15)
   })
 
-  // Preload via decode() before mounting so the staggered CSS reveal stays intact.
-  const [ready, setReady] = useState(false)
+  const [dataUris, setDataUris] = useState<Record<string, string> | null>(null)
   const [visible, setVisible] = useState(false)
 
   useEffect(() => {
-    if (images.length === 0) return
+    if (picked.length === 0) return
     let cancelled = false
-    const preload = images.map(
-      (img) =>
-        new Promise<void>((resolve) => {
-          const el = new Image()
-          el.src = img.url
-          const done = () => resolve()
-          if (el.decode) {
-            el.decode().then(done, done)
-          } else {
-            el.onload = done
-            el.onerror = done
-          }
-        })
-    )
-    const timeout = new Promise<void>((resolve) => setTimeout(resolve, 4000))
-    Promise.race([Promise.all(preload), timeout]).then(() => {
+    fetchBatchImageData(picked.map((img) => img.id)).then((data) => {
       if (cancelled) return
-      setReady(true)
+      setDataUris(data)
       requestAnimationFrame(() => {
         requestAnimationFrame(() => setVisible(true))
       })
     })
-    return () => {
-      cancelled = true
-    }
-  }, [images])
+    return () => { cancelled = true }
+  }, [picked])
 
-  if (images.length === 0 || !ready) return null
+  if (picked.length === 0 || !dataUris) return null
 
   return (
     <div className="absolute top-14 md:top-[4.5rem] left-0 right-0 bottom-0 z-0 grid grid-cols-4 md:grid-cols-5 auto-rows-fr">
-      {images.map((img, i) => (
-        <div key={i} className="overflow-hidden pointer-events-none">
-          <img
-            src={img.url}
-            alt=""
-            className="w-full h-full object-cover"
-            style={{
-              opacity: visible ? 1 : 0,
-              transition: `opacity 0.5s ease-out ${i * 0.04}s`,
-            }}
-          />
-        </div>
-      ))}
+      {picked.map((img, i) => {
+        const src = dataUris[img.id]
+        if (!src) return <div key={i} className="overflow-hidden pointer-events-none" />
+        return (
+          <div key={i} className="overflow-hidden pointer-events-none">
+            <img
+              src={src}
+              alt=""
+              className="w-full h-full object-cover"
+              style={{
+                opacity: visible ? 1 : 0,
+                transition: `opacity 0.5s ease-out ${i * 0.04}s`,
+              }}
+            />
+          </div>
+        )
+      })}
     </div>
   )
 }
@@ -600,21 +584,9 @@ export default function GlobeSceneHome() {
 
   // --- Fetch Google Drive images progressively ---
   useEffect(() => {
-    const warmed = new Set<string>()
-    const warmCache = (images: Record<string, DriveImage[]>) => {
-      for (const list of Object.values(images)) {
-        for (const img of list) {
-          if (warmed.has(img.url)) continue
-          warmed.add(img.url)
-          const el = new Image()
-          el.src = img.url
-        }
-      }
-    }
     fetchAllDriveImagesProgressive((images) => {
       setDriveImages(images)
       setDriveLoading(false)
-      warmCache(images)
     })
       .then(() => setAllImagesLoaded(true))
       .catch(() => setDriveLoading(false))
