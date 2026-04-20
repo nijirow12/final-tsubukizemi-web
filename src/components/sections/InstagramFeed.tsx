@@ -3,6 +3,7 @@
 /* eslint-disable @next/next/no-img-element */
 
 import { useEffect, useState } from 'react'
+import { useLanguage } from '@/lib/language-context'
 
 type Post = {
   id: string
@@ -31,6 +32,7 @@ function formatDate(dateStr: string) {
 }
 
 export default function InstagramFeed() {
+  const { lang } = useLanguage()
   const [feed, setFeed] = useState<FeedData | null>(null)
   const [loading, setLoading] = useState(true)
   const feedId = process.env.NEXT_PUBLIC_BEHOLD_FEED_ID
@@ -105,7 +107,7 @@ export default function InstagramFeed() {
           </p>
           {feed?.followersCount != null && (
             <p className="text-[0.72rem] text-[#94a3b8] mt-0.5">
-              {feed.followersCount.toLocaleString()} followers
+              {feed.followersCount.toLocaleString()} {{ ja: 'フォロワー', en: 'followers', zh: '粉丝' }[lang]}
             </p>
           )}
           {feed?.biography && (
@@ -174,14 +176,14 @@ export default function InstagramFeed() {
 
       {/* ── フッター ── */}
       <div className="px-6 py-4 flex items-center justify-between border-t border-[#e2e8f0]">
-        <p className="text-[0.7rem] text-[#cbd5e1] tracking-[0.1em] uppercase">Latest posts</p>
+        <p className="text-[0.7rem] text-[#cbd5e1] tracking-[0.1em] uppercase">{{ ja: '最新の投稿', en: 'Latest posts', zh: '最新帖子' }[lang]}</p>
         <a
           href={profileUrl}
           target="_blank"
           rel="noopener noreferrer"
           className="text-[0.72rem] text-[#94a3b8] hover:text-[#4338ca] tracking-[0.05em] no-underline transition-colors duration-200"
         >
-          View on Instagram →
+          {{ ja: 'Instagramで見る →', en: 'View on Instagram →', zh: '在Instagram上查看 →' }[lang]}
         </a>
       </div>
 

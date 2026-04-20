@@ -34,9 +34,9 @@ export default function AboutPage() {
           ABOUT
         </h1>
         <div className="mt-4 flex items-center gap-4 text-[#94a3b8] text-[0.78rem] tracking-[0.15em] uppercase">
-          <span>{countryCount} Countries</span>
+          <span>{{ ja: `${countryCount}カ国`, en: `${countryCount} Countries`, zh: `${countryCount}个国家` }[lang]}</span>
           <span className="w-6 h-px bg-[#d1d5db] inline-block" />
-          <span>Southeast Asia</span>
+          <span>{{ ja: '東南アジア', en: 'Southeast Asia', zh: '东南亚' }[lang]}</span>
         </div>
       </div>
 
