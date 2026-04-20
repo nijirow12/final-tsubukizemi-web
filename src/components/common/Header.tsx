@@ -3,14 +3,14 @@
 import { useState } from 'react'
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
-import { useLanguage } from '@/lib/language-context'
+import { useLanguage, type Language } from '@/lib/language-context'
 
 const navItems = [
-  { href: '/home', ja: 'ホーム', en: 'Home' },
-  { href: '/about', ja: 'About', en: 'About' },
-  { href: '/activities', ja: '活動内容', en: 'Activities' },
-  { href: '/members', ja: 'メンバー', en: 'Members' },
-  { href: '/contact', ja: 'お問い合わせ', en: 'Contact' },
+  { href: '/home', ja: 'ホーム', en: 'Home', zh: '主页' },
+  { href: '/about', ja: 'About', en: 'About', zh: '关于' },
+  { href: '/activities', ja: '活動内容', en: 'Activities', zh: '活动' },
+  { href: '/members', ja: 'メンバー', en: 'Members', zh: '成员' },
+  { href: '/contact', ja: 'お問い合わせ', en: 'Contact', zh: '联系我们' },
 ]
 
 const socialLinks = [
@@ -18,6 +18,14 @@ const socialLinks = [
   { href: 'https://x.com/emc_global_zemi', label: 'Twitter', icon: TwitterIcon },
   { href: 'https://www.facebook.com/emcglobalzemi12/?locale=ja_JP', label: 'Facebook', icon: FacebookIcon },
 ]
+
+const langLabels: Record<Language, string> = { ja: 'JP', en: 'EN', zh: 'CN' }
+
+const subtitles: Record<Language, string> = {
+  ja: '武蔵野大学アントレプレナーシップ学部 グローバルゼミ',
+  en: 'Musashino University, Faculty of Entrepreneurship',
+  zh: '武藏野大学创业学部 全球研讨会',
+}
 
 function InstagramIcon() {
   return (
@@ -51,10 +59,34 @@ function FacebookIcon() {
   )
 }
 
+function LangSwitcher({ compact = false }: { compact?: boolean }) {
+  const { lang, setLang } = useLanguage()
+  return (
+    <div
+      className={`inline-flex items-center bg-[#f1f5f9] rounded-full p-0.5 ${compact ? 'gap-0' : ''}`}
+      aria-label="言語切り替え"
+    >
+      {(['ja', 'en', 'zh'] as Language[]).map((l) => (
+        <button
+          key={l}
+          onClick={() => setLang(l)}
+          className={`px-2.5 py-1 text-[0.65rem] tracking-[0.18em] font-semibold rounded-full transition-all duration-200 border-none cursor-pointer
+            ${lang === l
+              ? 'bg-white text-[#111827] shadow-sm'
+              : 'bg-transparent text-[#94a3b8] hover:text-[#64748b]'
+            }`}
+        >
+          {langLabels[l]}
+        </button>
+      ))}
+    </div>
+  )
+}
+
 export default function Header({ className = '' }: { className?: string }) {
   const pathname = usePathname()
   const [menuOpen, setMenuOpen] = useState(false)
-  const { lang, setLang } = useLanguage()
+  const { lang } = useLanguage()
 
   return (
     <header
@@ -64,7 +96,7 @@ export default function Header({ className = '' }: { className?: string }) {
         <Link href="/home" className="no-underline text-inherit flex flex-col gap-0.5 md:gap-1 shrink-0">
           <span className="text-[clamp(0.9rem,2.5vw,1.35rem)] font-semibold tracking-[0.3em] md:tracking-[0.4em]">TSUBUKI SEMINAR</span>
           <span className="text-[clamp(0.5rem,1.2vw,0.7rem)] tracking-[0.14em] md:tracking-[0.18em] text-[#64748b] uppercase">
-            {lang === 'ja' ? '武蔵野大学アントレプレナーシップ学部 グローバルゼミ' : 'Musashino University, Faculty of Entrepreneurship'}
+            {subtitles[lang]}
           </span>
         </Link>
 
@@ -81,7 +113,7 @@ export default function Header({ className = '' }: { className?: string }) {
                       className={`no-underline text-[#1f2937] text-[0.78rem] font-semibold tracking-[0.22em] uppercase relative pb-0.5 transition-colors duration-200 after:content-[''] after:absolute after:left-0 after:bottom-0 after:w-full after:h-px after:bg-current after:origin-center after:transition-transform after:duration-200 ${isActive ? 'text-[#111827] after:scale-x-100' : 'after:scale-x-0 hover:text-[#111827] hover:after:scale-x-100'}`}
                       aria-current={isActive ? 'page' : undefined}
                     >
-                      {lang === 'ja' ? item.ja : item.en}
+                      {item[lang]}
                     </Link>
                   </li>
                 )
@@ -105,20 +137,8 @@ export default function Header({ className = '' }: { className?: string }) {
             ))}
           </ul>
 
-          <div className="inline-flex items-center gap-[0.3rem] pl-[0.9rem] border-l border-[#111827]/18" aria-label="言語切り替え">
-            <button
-              onClick={() => setLang('ja')}
-              className={`text-[0.72rem] tracking-[0.28em] uppercase font-semibold bg-transparent border-none cursor-pointer ${lang === 'ja' ? 'text-[#111827]' : 'text-[#111827]/35'}`}
-            >
-              JA
-            </button>
-            <span className="text-[0.72rem] tracking-[0.28em] text-[#111827]/35">/</span>
-            <button
-              onClick={() => setLang('en')}
-              className={`text-[0.72rem] tracking-[0.28em] uppercase font-semibold bg-transparent border-none cursor-pointer ${lang === 'en' ? 'text-[#111827]' : 'text-[#111827]/35'}`}
-            >
-              EN
-            </button>
+          <div className="pl-[0.9rem] border-l border-[#111827]/18">
+            <LangSwitcher />
           </div>
         </div>
 
@@ -148,7 +168,7 @@ export default function Header({ className = '' }: { className?: string }) {
                       onClick={() => setMenuOpen(false)}
                       className={`no-underline text-[0.9rem] font-semibold tracking-[0.18em] uppercase ${isActive ? 'text-[#111827]' : 'text-[#475569]'}`}
                     >
-                      {lang === 'ja' ? item.ja : item.en}
+                      {item[lang]}
                     </Link>
                   </li>
                 )
@@ -156,19 +176,22 @@ export default function Header({ className = '' }: { className?: string }) {
             </ul>
           </nav>
 
-          <div className="flex items-center gap-4 pt-2 border-t border-[#e2e8f0]/50">
-            {socialLinks.map(({ href, label, icon: Icon }) => (
-              <a
-                key={href}
-                href={href}
-                target="_blank"
-                rel="noopener noreferrer"
-                aria-label={label}
-                className="inline-flex items-center justify-center text-[#111827] opacity-70"
-              >
-                <Icon />
-              </a>
-            ))}
+          <div className="flex items-center justify-between pt-2 border-t border-[#e2e8f0]/50">
+            <div className="flex items-center gap-4">
+              {socialLinks.map(({ href, label, icon: Icon }) => (
+                <a
+                  key={href}
+                  href={href}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  aria-label={label}
+                  className="inline-flex items-center justify-center text-[#111827] opacity-70"
+                >
+                  <Icon />
+                </a>
+              ))}
+            </div>
+            <LangSwitcher compact />
           </div>
         </div>
       )}

@@ -1,19 +1,6 @@
-export type DemoMember = {
-  id: string
-  name: string              // 名前（日本語）
-  nameEn: string            // Name (English)
-  introduction: string      // 自己紹介文（日本語）
-  introductionEn: string    // Self-introduction (English)
-  projects: string          // プロジェクト・課外活動（日本語）
-  projectsEn: string        // Projects & Activities (English)
-  countries: string[]       // 行ったことある国・好きな国
-  socialUrl: string | null  // Facebook / Instagram / プロジェクト URL（任意）
-  photo: string | null      // 写真パス or URL
-  isOB: boolean             // true = OB/OG（卒業生）
-  grade: string | null      // "4年", "3年" etc. — 現役生のみ
-}
+import type { Member } from '@/lib/microcms'
 
-export const demoMembers: DemoMember[] = [
+export const demoMembers: Member[] = [
   // ── 現役生 ──────────────────────────────────────────────────────────
   {
     id: '1',

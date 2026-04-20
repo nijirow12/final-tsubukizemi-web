@@ -1,9 +1,9 @@
 'use client'
 
 import { professorProfile } from '@/data/professor'
-import { useLanguage } from '@/lib/language-context'
+import { useLanguage, type Language } from '@/lib/language-context'
 import { useState, useEffect } from 'react'
-import type { DemoMember } from '@/data/members-demo'
+import type { Member } from '@/lib/microcms'
 /* eslint-disable @next/next/no-img-element */
 
 // ── アイコン ──────────────────────────────────────────────────────────
@@ -35,9 +35,21 @@ function BriefcaseIcon() {
 }
 
 // ── メンバーカード ─────────────────────────────────────────────────────
-function MemberCard({ member, lang }: { member: DemoMember; lang: 'ja' | 'en' }) {
+function MemberCard({ member, lang }: { member: Member; lang: Language }) {
   const [isOpen, setIsOpen] = useState(false)
-  const t = lang === 'ja'
+
+  // zh は en にフォールバック（microCMS に中国語フィールドなし）
+  const displayName    = lang === 'ja' ? member.name    : member.nameEn
+  const displayNameSub = lang === 'ja' ? member.nameEn  : member.name
+  const displayIntro   = lang === 'ja' ? member.introduction  : member.introductionEn
+  const displayProjects = lang === 'ja' ? member.projects : member.projectsEn
+
+  const labels = {
+    about:     { ja: '自己紹介',             en: 'About',                          zh: '自我介绍' }[lang],
+    projects:  { ja: 'プロジェクト・課外活動', en: 'Projects & Activities',          zh: '项目·课外活动' }[lang],
+    countries: { ja: '行ったことある国・好きな国', en: 'Countries Visited / Favorites', zh: '去过的国家·喜欢的国家' }[lang],
+    links:     { ja: 'SNS / リンク',          en: 'Links',                          zh: '链接' }[lang],
+  }
 
   return (
     <div className="border border-[#e2e8f0] rounded-xl overflow-hidden transition-shadow hover:shadow-sm">
@@ -49,7 +61,7 @@ function MemberCard({ member, lang }: { member: DemoMember; lang: 'ja' | 'en' })
         {/* アバター */}
         {member.photo ? (
           <img
-            src={member.photo}
+            src={member.photo.url}
             alt={member.name}
             className="shrink-0 w-14 h-14 rounded-full object-cover"
           />
@@ -62,10 +74,10 @@ function MemberCard({ member, lang }: { member: DemoMember; lang: 'ja' | 'en' })
         {/* 名前 + 国タグ */}
         <div className="flex-1 min-w-0">
           <p className="text-[1.05rem] font-medium text-[#111827] leading-tight">
-            {t ? member.name : member.nameEn}
+            {displayName}
           </p>
           <p className="text-[0.8rem] text-[#94a3b8] mt-0.5">
-            {t ? member.nameEn : member.name}
+            {displayNameSub}
           </p>
           {/* 国タグ（折りたたみ時のみ） */}
           {!isOpen && member.countries.length > 0 && (
@@ -99,28 +111,28 @@ function MemberCard({ member, lang }: { member: DemoMember; lang: 'ja' | 'en' })
           {/* 自己紹介 */}
           <div className="mt-4">
             <h4 className="text-[0.68rem] tracking-[0.18em] uppercase text-[#94a3b8] font-medium mb-1.5">
-              {t ? '自己紹介' : 'About'}
+              {labels.about}
             </h4>
             <p className="text-[0.9rem] text-[#475569] leading-[1.85]">
-              {t ? member.introduction : member.introductionEn}
+              {displayIntro}
             </p>
           </div>
 
           {/* プロジェクト */}
           <div>
             <h4 className="text-[0.68rem] tracking-[0.18em] uppercase text-[#94a3b8] font-medium mb-1.5">
-              {t ? 'プロジェクト・課外活動' : 'Projects & Activities'}
+              {labels.projects}
             </h4>
             <div className="flex gap-2 text-[0.88rem] text-[#475569]">
               <BriefcaseIcon />
-              <p className="leading-[1.8]">{t ? member.projects : member.projectsEn}</p>
+              <p className="leading-[1.8]">{displayProjects}</p>
             </div>
           </div>
 
           {/* 訪問国 */}
           <div>
             <h4 className="text-[0.68rem] tracking-[0.18em] uppercase text-[#94a3b8] font-medium mb-1.5">
-              {t ? '行ったことある国・好きな国' : 'Countries Visited / Favorites'}
+              {labels.countries}
             </h4>
             <div className="flex gap-2 items-start">
               <GlobeIcon />
@@ -138,7 +150,7 @@ function MemberCard({ member, lang }: { member: DemoMember; lang: 'ja' | 'en' })
           {member.socialUrl && (
             <div>
               <h4 className="text-[0.68rem] tracking-[0.18em] uppercase text-[#94a3b8] font-medium mb-1.5">
-                {t ? 'SNS / リンク' : 'Links'}
+                {labels.links}
               </h4>
               <a
                 href={member.socialUrl}
@@ -170,20 +182,32 @@ function SectionLabel({ label, count }: { label: string; count: number }) {
 // ── メインページ ──────────────────────────────────────────────────────
 export default function MembersPage() {
   const { lang } = useLanguage()
-  const t = lang === 'ja'
-  const [members, setMembers] = useState<DemoMember[]>([])
+  const [members, setMembers] = useState<Member[]>([])
   const [loading, setLoading] = useState(true)
 
   useEffect(() => {
-    fetch('/api/members')
+    const controller = new AbortController()
+    fetch('/api/members', { signal: controller.signal })
       .then((res) => res.json())
-      .then((data: DemoMember[]) => setMembers(data))
-      .catch((err) => console.error('Failed to fetch members:', err))
+      .then((data: Member[]) => setMembers(data))
+      .catch((err) => { if (err.name !== 'AbortError') console.error('Failed to fetch members:', err) })
       .finally(() => setLoading(false))
+    return () => controller.abort()
   }, [])
 
   const active = members.filter((m) => !m.isOB)
   const ob = members.filter((m) => m.isOB)
+
+  const txt = {
+    subtitle:       { ja: '津吹ゼミのメンバーを紹介します', en: 'Meet the members of Tsubuki Seminar', zh: '介绍津吹研讨会的成员' }[lang],
+    loading:        { ja: '読み込み中...',                   en: 'Loading...',                         zh: '加载中...' }[lang],
+    empty:          { ja: 'メンバーが登録されていません',     en: 'No members registered yet',          zh: '暂无成员登记' }[lang],
+    currentLabel:   { ja: '現役生',                          en: 'Current Members',                    zh: '现役成员' }[lang],
+    professorName:  lang === 'zh' ? professorProfile.nameZh : lang === 'ja' ? professorProfile.name : professorProfile.nameEn,
+    professorSub:   lang === 'ja' ? professorProfile.nameEn : professorProfile.name,
+    professorSummary: lang === 'zh' ? professorProfile.summaryZh : lang === 'ja' ? professorProfile.summary : professorProfile.summaryEn,
+    researchFields: lang === 'zh' ? professorProfile.researchFieldsZh : lang === 'ja' ? professorProfile.researchFields : professorProfile.researchFieldsEn,
+  }
 
   return (
     <div className="bg-white min-h-screen">
@@ -193,7 +217,7 @@ export default function MembersPage() {
           MEMBERS
         </h1>
         <p className="mt-4 text-[#94a3b8] text-[0.78rem] tracking-[0.15em]">
-          {t ? '津吹ゼミのメンバーを紹介します' : 'Meet the members of Tsubuki Seminar'}
+          {txt.subtitle}
         </p>
       </div>
 
@@ -210,16 +234,16 @@ export default function MembersPage() {
             />
             <div className="flex flex-col justify-center">
               <h2 className="text-[2rem] md:text-[2.5rem] font-medium tracking-[0.02em] text-[#111827] leading-tight">
-                {t ? professorProfile.name : professorProfile.nameEn}
+                {txt.professorName}
               </h2>
               <p className="mt-1 text-[#b0b8c4] font-light text-[1rem] md:text-[1.1rem] tracking-[0.05em]">
-                {t ? professorProfile.nameEn : professorProfile.name}
+                {txt.professorSub}
               </p>
               <p className="mt-6 text-[0.95rem] text-[#475569] leading-[2]">
-                {t ? professorProfile.summary : professorProfile.summaryEn}
+                {txt.professorSummary}
               </p>
               <div className="mt-5 flex flex-wrap gap-2">
-                {(t ? professorProfile.researchFields : professorProfile.researchFieldsEn).map((field) => (
+                {txt.researchFields.map((field) => (
                   <span key={field} className="px-4 py-1.5 text-[0.78rem] text-[#64748b] border border-[#e2e8f0] rounded-full">
                     {field}
                   </span>
@@ -233,13 +257,11 @@ export default function MembersPage() {
 
         {/* ── 現役生 ── */}
         <section>
-          <SectionLabel label={t ? '現役生' : 'Current Members'} count={active.length} />
+          <SectionLabel label={txt.currentLabel} count={active.length} />
           {loading ? (
-            <p className="text-[#94a3b8] text-[0.9rem]">{t ? '読み込み中...' : 'Loading...'}</p>
+            <p className="text-[#94a3b8] text-[0.9rem]">{txt.loading}</p>
           ) : active.length === 0 ? (
-            <p className="text-[#94a3b8] text-[0.9rem]">
-              {t ? 'メンバーが登録されていません' : 'No members registered yet'}
-            </p>
+            <p className="text-[#94a3b8] text-[0.9rem]">{txt.empty}</p>
           ) : (
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4 items-start">
               {active.map((member) => (
