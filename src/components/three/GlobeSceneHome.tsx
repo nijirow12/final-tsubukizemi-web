@@ -179,14 +179,23 @@ function PhotoBurst({
           className="absolute left-0 right-0 z-[15] flex justify-center pointer-events-none"
           style={{ top: '22%', animation: 'fadeSlideIn 0.5s ease-out both' }}
         >
-          <div className="flex flex-col items-center gap-0.5 bg-black/40 backdrop-blur-md rounded-2xl px-6 py-2.5 border border-white/15">
-            <span className="text-white font-bold text-[clamp(1.1rem,2.2vw,1.6rem)] tracking-[0.2em] uppercase">
-              📍 {PIN_COORDINATES[selectedPin].label.toUpperCase()}
-            </span>
-            {selectedPin !== 'japan' && (
-              <span className="text-white/75 text-[clamp(0.65rem,1vw,0.8rem)] tracking-[0.1em]">
-                {{ ja: '日本から約', en: 'approx.', zh: '距日本约' }[lang]} {distanceFromJapanKm(PIN_COORDINATES[selectedPin].lat, PIN_COORDINATES[selectedPin].lng).toLocaleString()} {{ ja: 'km', en: 'km from Japan', zh: 'km' }[lang]}
+          <div className="flex flex-col items-center bg-slate-900/55 backdrop-blur-xl rounded-xl px-7 py-3 border border-slate-200/20 shadow-[0_8px_28px_rgba(15,23,42,0.35)]">
+            <div className="flex items-center gap-2.5">
+              <span className="w-1.5 h-1.5 rounded-full bg-red-400 shadow-[0_0_8px_rgba(248,113,113,0.8)]" aria-hidden />
+              <span
+                className="text-slate-100 font-semibold text-[clamp(1.15rem,2.3vw,1.7rem)] tracking-[0.32em] uppercase"
+                style={{ textShadow: '0 2px 10px rgba(0,0,0,0.45)' }}
+              >
+                {PIN_COORDINATES[selectedPin].label.toUpperCase()}
               </span>
+            </div>
+            {selectedPin !== 'japan' && (
+              <>
+                <span className="block w-10 h-px bg-slate-200/30 my-2" aria-hidden />
+                <span className="text-slate-200/75 text-[clamp(0.65rem,1vw,0.8rem)] tracking-[0.22em] font-light">
+                  {{ ja: '日本から約', en: 'approx.', zh: '距日本约' }[lang]} {distanceFromJapanKm(PIN_COORDINATES[selectedPin].lat, PIN_COORDINATES[selectedPin].lng).toLocaleString()} {{ ja: 'km', en: 'km from Japan', zh: 'km' }[lang]}
+                </span>
+              </>
             )}
           </div>
         </div>
@@ -235,7 +244,7 @@ function PhotoBurst({
                 {PIN_COORDINATES[selectedPin].labelJa}
               </h2>
               <p className="text-[0.75rem] md:text-[0.8rem] text-[#64748b] tracking-[0.06em]">
-                {PIN_COORDINATES[selectedPin].label} — {pinImages.length} photos
+                {PIN_COORDINATES[selectedPin].label} — {{ ja: `${pinImages.length}枚`, en: `${pinImages.length} photos`, zh: `${pinImages.length}张` }[lang]}
               </p>
             </div>
             <button
