@@ -9,19 +9,6 @@ import Header from '@/components/common/Header'
 import { fetchAllDriveImagesProgressive, fetchBatchImageData, type DriveImage } from '@/lib/google-drive'
 import { useLanguage } from '@/lib/language-context'
 
-// --- Distance from Japan (Haversine) ---
-const JAPAN_LAT = 36.2048
-const JAPAN_LNG = 138.2529
-function distanceFromJapanKm(lat: number, lng: number): number {
-  const R = 6371
-  const dLat = (lat - JAPAN_LAT) * Math.PI / 180
-  const dLng = (lng - JAPAN_LNG) * Math.PI / 180
-  const a =
-    Math.sin(dLat / 2) ** 2 +
-    Math.cos(JAPAN_LAT * Math.PI / 180) * Math.cos(lat * Math.PI / 180) * Math.sin(dLng / 2) ** 2
-  return Math.round(R * 2 * Math.asin(Math.sqrt(a)) / 100) * 100
-}
-
 // --- Constants ---
 const EARTH_RADIUS = 5
 const PIN_HEIGHT = 0.28
@@ -168,22 +155,52 @@ function PhotoBurst({
 
   return (
     <>
-      {/* Country name — between header and globe */}
+      {/* Country name — between header and globe (same style as /home) */}
       {!albumOpen && (
         <div
           className="absolute left-0 right-0 z-[15] flex justify-center pointer-events-none"
-          style={{ top: '22%', animation: 'fadeSlideIn 0.5s ease-out both' }}
+          style={{ top: '18%', animation: 'fadeSlideIn 0.5s ease-out both' }}
         >
-          <div className="flex flex-col items-center gap-0.5 bg-black/40 backdrop-blur-md rounded-2xl px-6 py-2.5 border border-white/15">
-            <span className="text-white font-bold text-[clamp(1.1rem,2.2vw,1.6rem)] tracking-[0.2em] uppercase">
-              📍 {PIN_COORDINATES[selectedPin].label.toUpperCase()}
-            </span>
-            {selectedPin !== 'japan' && (
-              <span className="text-white/75 text-[clamp(0.65rem,1vw,0.8rem)] tracking-[0.1em]">
-                {{ ja: '日本から約', en: 'approx.', zh: '距日本约' }[lang]} {distanceFromJapanKm(PIN_COORDINATES[selectedPin].lat, PIN_COORDINATES[selectedPin].lng).toLocaleString()} {{ ja: 'km', en: 'km from Japan', zh: 'km' }[lang]}
-              </span>
-            )}
-          </div>
+          {(() => {
+            const label = PIN_COORDINATES[selectedPin].label.toUpperCase()
+            // Dynamic font-size: keep text within arc width (~900 user units)
+            // even for long labels (PHILIPPINES = 11 chars).
+            const fontSize = Math.min(170, Math.round(900 / (label.length * 0.55)))
+            return (
+              <svg
+                viewBox="0 0 1000 260"
+                className="w-[min(88vw,880px)] overflow-visible"
+                preserveAspectRatio="xMidYMid meet"
+              >
+                <defs>
+                  <path
+                    id="country-name-arc"
+                    d="M 40 240 Q 500 40 960 240"
+                    fill="none"
+                  />
+                </defs>
+                <text
+                  fill="#f1f5f9"
+                  style={{
+                    fontSize: `${fontSize}px`,
+                    fontWeight: 700,
+                    letterSpacing: '-0.01em',
+                    fontFamily: 'var(--font-sans)',
+                    filter:
+                      'drop-shadow(0 2px 6px rgba(15,23,42,0.55)) drop-shadow(0 10px 30px rgba(15,23,42,0.45))',
+                  }}
+                >
+                  <textPath
+                    href="#country-name-arc"
+                    startOffset="50%"
+                    textAnchor="middle"
+                  >
+                    {label}
+                  </textPath>
+                </text>
+              </svg>
+            )
+          })()}
         </div>
       )}
 
