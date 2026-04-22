@@ -618,7 +618,7 @@ export default function GlobeScene() {
 
       // Earth: rotate to Asia + sink down
       earth.rotation.y = startEarthRotY + deltaRotY * rotT
-      earth.position.y = (isMobileView ? -3.5 : -3.5) * rotT
+      earth.position.y = (isMobileView ? -5.5 : -3.5) * rotT
 
       // Camera: pull back
       camera.position.lerpVectors(startCamPos, endCamPos, rotT)

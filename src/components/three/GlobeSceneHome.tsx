@@ -439,7 +439,7 @@ export default function GlobeSceneHome() {
     // Set to post-animation state
     earth.rotation.y = ASIA_TARGET_ROT_Y
     earth.rotation.x = -0.26
-    earth.position.y = isMobileView ? -3.5 : -3.5
+    earth.position.y = isMobileView ? -5.5 : -3.5
 
     scene.add(earth)
 
