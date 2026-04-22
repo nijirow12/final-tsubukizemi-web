@@ -1,4 +1,4 @@
-import type { Metadata } from 'next'
+import type { Metadata, Viewport } from 'next'
 import './globals.css'
 import ConditionalLayout from '@/components/common/ConditionalLayout'
 import { LanguageProvider } from '@/lib/language-context'
@@ -7,6 +7,12 @@ export const metadata: Metadata = {
   title: '津吹ゼミ | TSUBUKI SEMINAR',
   description:
     '武蔵野大学アントレプレナーシップ学部 津吹ゼミ（グローバルゼミ）の公式サイト。海外プロジェクトや最新情報、メンバー紹介、問い合わせ先を掲載しています。',
+}
+
+export const viewport: Viewport = {
+  width: 'device-width',
+  initialScale: 1,
+  viewportFit: 'cover',
 }
 
 export default function RootLayout({

@@ -7,19 +7,6 @@ import { PIN_COORDINATES, type CountryId } from '@/data/pin-coordinates'
 import { fetchAllDriveImagesProgressive, fetchBatchImageData, type DriveImage } from '@/lib/google-drive'
 import { useLanguage } from '@/lib/language-context'
 
-// --- Distance from Japan (Haversine) ---
-const JAPAN_LAT = 36.2048
-const JAPAN_LNG = 138.2529
-function distanceFromJapanKm(lat: number, lng: number): number {
-  const R = 6371
-  const dLat = (lat - JAPAN_LAT) * Math.PI / 180
-  const dLng = (lng - JAPAN_LNG) * Math.PI / 180
-  const a =
-    Math.sin(dLat / 2) ** 2 +
-    Math.cos(JAPAN_LAT * Math.PI / 180) * Math.cos(lat * Math.PI / 180) * Math.sin(dLng / 2) ** 2
-  return Math.round(R * 2 * Math.asin(Math.sqrt(a)) / 100) * 100
-}
-
 // --- Photo positions: オリジナル12枠 ---
 const PHOTO_POSITIONS_DESKTOP: { top: string; left?: string; right?: string; rotate: number }[] = [
   { top: '22%', left: '3%', rotate: -6 },
@@ -177,27 +164,48 @@ function PhotoBurst({
       {!albumOpen && (
         <div
           className="absolute left-0 right-0 z-[15] flex justify-center pointer-events-none"
-          style={{ top: '22%', animation: 'fadeSlideIn 0.5s ease-out both' }}
+          style={{ top: '18%', animation: 'fadeSlideIn 0.5s ease-out both' }}
         >
-          <div className="flex flex-col items-center bg-slate-900/55 backdrop-blur-xl rounded-xl px-7 py-3 border border-slate-200/20 shadow-[0_8px_28px_rgba(15,23,42,0.35)]">
-            <div className="flex items-center gap-2.5">
-              <span className="w-1.5 h-1.5 rounded-full bg-red-400 shadow-[0_0_8px_rgba(248,113,113,0.8)]" aria-hidden />
-              <span
-                className="text-slate-100 font-semibold text-[clamp(1.15rem,2.3vw,1.7rem)] tracking-[0.32em] uppercase"
-                style={{ textShadow: '0 2px 10px rgba(0,0,0,0.45)' }}
+          {(() => {
+            const label = PIN_COORDINATES[selectedPin].label.toUpperCase()
+            // Dynamic font-size: keep text within arc width (~900 user units)
+            // even for long labels (PHILIPPINES = 11 chars).
+            const fontSize = Math.min(170, Math.round(900 / (label.length * 0.55)))
+            return (
+              <svg
+                viewBox="0 0 1000 260"
+                className="w-[min(88vw,880px)] overflow-visible"
+                preserveAspectRatio="xMidYMid meet"
               >
-                {PIN_COORDINATES[selectedPin].label.toUpperCase()}
-              </span>
-            </div>
-            {selectedPin !== 'japan' && (
-              <>
-                <span className="block w-10 h-px bg-slate-200/30 my-2" aria-hidden />
-                <span className="text-slate-200/75 text-[clamp(0.65rem,1vw,0.8rem)] tracking-[0.22em] font-light">
-                  {{ ja: '日本から約', en: 'approx.', zh: '距日本约' }[lang]} {distanceFromJapanKm(PIN_COORDINATES[selectedPin].lat, PIN_COORDINATES[selectedPin].lng).toLocaleString()} {{ ja: 'km', en: 'km from Japan', zh: 'km' }[lang]}
-                </span>
-              </>
-            )}
-          </div>
+                <defs>
+                  <path
+                    id="country-name-arc"
+                    d="M 40 240 Q 500 40 960 240"
+                    fill="none"
+                  />
+                </defs>
+                <text
+                  fill="#f1f5f9"
+                  style={{
+                    fontSize: `${fontSize}px`,
+                    fontWeight: 700,
+                    letterSpacing: '-0.01em',
+                    fontFamily: 'var(--font-sans)',
+                    filter:
+                      'drop-shadow(0 2px 6px rgba(15,23,42,0.55)) drop-shadow(0 10px 30px rgba(15,23,42,0.45))',
+                  }}
+                >
+                  <textPath
+                    href="#country-name-arc"
+                    startOffset="50%"
+                    textAnchor="middle"
+                  >
+                    {label}
+                  </textPath>
+                </text>
+              </svg>
+            )
+          })()}
         </div>
       )}
 
@@ -224,8 +232,11 @@ function PhotoBurst({
       {!albumOpen && pinImages.length > 0 && (
         <button
           onClick={() => setAlbumOpen(true)}
-          className="absolute bottom-8 left-1/2 -translate-x-1/2 z-30 flex items-center gap-2 bg-white/90 backdrop-blur-md rounded-full px-6 py-3 shadow-[0_8px_24px_rgba(15,23,42,0.12)] border border-[#e2e8f0] cursor-pointer hover:bg-white hover:shadow-[0_12px_32px_rgba(15,23,42,0.18)] transition-all duration-200"
-          style={{ animation: 'fadeSlideIn 0.4s ease-out 0.8s both' }}
+          className="absolute left-1/2 -translate-x-1/2 z-30 flex items-center gap-2 bg-white/90 backdrop-blur-md rounded-full px-5 md:px-6 py-2.5 md:py-3 shadow-[0_8px_24px_rgba(15,23,42,0.12)] border border-[#e2e8f0] cursor-pointer hover:bg-white hover:shadow-[0_12px_32px_rgba(15,23,42,0.18)] transition-all duration-200 max-w-[calc(100vw-2rem)]"
+          style={{
+            bottom: 'max(1.5rem, env(safe-area-inset-bottom) + 1rem)',
+            animation: 'fadeSlideIn 0.4s ease-out 0.8s both',
+          }}
         >
           <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-[#64748b]">
             <rect x="3" y="3" width="7" height="7" /><rect x="14" y="3" width="7" height="7" /><rect x="3" y="14" width="7" height="7" /><rect x="14" y="14" width="7" height="7" />
@@ -610,12 +621,15 @@ export default function GlobeSceneHome() {
       <div ref={containerRef} className="absolute inset-0 z-10" />
 
       {showClickHint && !selectedPin && (
-        <div className="absolute bottom-8 left-1/2 -translate-x-1/2 z-20 flex items-center gap-2 bg-white/90 backdrop-blur-md rounded-full px-5 py-2.5 shadow-[0_8px_24px_rgba(15,23,42,0.1)] border border-[#e2e8f0] animate-bounce">
-          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" className="text-[#dd2222]">
+        <div
+          className="absolute left-1/2 -translate-x-1/2 z-20 flex items-center gap-2 bg-white/90 backdrop-blur-md rounded-full px-4 md:px-5 py-2 md:py-2.5 shadow-[0_8px_24px_rgba(15,23,42,0.1)] border border-[#e2e8f0] animate-bounce max-w-[calc(100vw-2rem)]"
+          style={{ bottom: 'max(1.5rem, env(safe-area-inset-bottom) + 1rem)' }}
+        >
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" className="text-[#dd2222] shrink-0 md:w-5 md:h-5">
             <path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7zm0 9.5a2.5 2.5 0 1 1 0-5 2.5 2.5 0 0 1 0 5z" fill="currentColor"/>
           </svg>
-          <span className="text-[0.82rem] font-semibold text-[#0f172a] tracking-[0.04em]">
-            {{ ja: 'ピンをクリックして活動写真を見る', en: 'Click a pin to see activity photos', zh: '点击图钉查看活动照片' }[lang]}
+          <span className="text-[0.75rem] md:text-[0.82rem] font-semibold text-[#0f172a] tracking-[0.04em] whitespace-nowrap">
+            {{ ja: 'ピンをタップして活動写真を見る', en: 'Tap a pin to see activity photos', zh: '点击图钉查看活动照片' }[lang]}
           </span>
         </div>
       )}
