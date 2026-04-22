@@ -1,9 +1,17 @@
 import { createClient } from 'microcms-js-sdk'
 
-export const client = createClient({
-  serviceDomain: process.env.MICROCMS_SERVICE_DOMAIN!,
-  apiKey: process.env.MICROCMS_API_KEY!,
-})
+let _client: ReturnType<typeof createClient> | null = null
+
+function getClient(): ReturnType<typeof createClient> {
+  if (_client) return _client
+  const serviceDomain = process.env.MICROCMS_SERVICE_DOMAIN
+  const apiKey = process.env.MICROCMS_API_KEY
+  if (!serviceDomain || !apiKey) {
+    throw new Error('microCMS env vars are not set')
+  }
+  _client = createClient({ serviceDomain, apiKey })
+  return _client
+}
 
 export type MicroCMSImage = {
   url: string
@@ -48,7 +56,7 @@ function normalizeCountries(raw: unknown): string[] {
 }
 
 export async function getMembers(): Promise<Member[]> {
-  const res = await client.getList<RawMember>({
+  const res = await getClient().getList<RawMember>({
     endpoint: 'tsubukizemi',
     queries: {
       fields: [
