@@ -389,6 +389,9 @@ export default function GlobeScene() {
   const [driveImages, setDriveImages] = useState<Record<string, DriveImage[]>>({})
   const [driveLoading, setDriveLoading] = useState(false)
   const [allImagesLoaded, setAllImagesLoaded] = useState(false)
+  // Mirror of which countries have a Drive folder — used from non-React
+  // code (drop animation, raycaster) which shouldn't see stale state.
+  const folderCountriesRef = useRef<Set<string>>(new Set())
 
   // --- Init ---
   const initScene = useCallback(() => {
@@ -629,7 +632,12 @@ export default function GlobeScene() {
             refs.controls.target.set(0, 0, 0)
             refs.controls.enabled = true
 
-            const pinEntries = Array.from(pinGroups.entries())
+            // Only drop pins for countries whose Drive folder is known
+            // at the time the zoom completes. Folders that load later are
+            // revealed without animation via the `driveImages` effect.
+            const pinEntries = Array.from(pinGroups.entries()).filter(
+              ([id]) => folderCountriesRef.current.has(id)
+            )
             let idx = 0
 
             const dropNextPin = () => {
@@ -786,6 +794,20 @@ export default function GlobeScene() {
       .then(() => setAllImagesLoaded(true))
       .catch(() => setDriveLoading(false))
   }, [])
+
+  // --- Sync pin visibility with Drive folders ---
+  // Only pins whose country folder exists in Drive are shown.
+  // Pins that become known after the intro drop animation are revealed
+  // without animation.
+  useEffect(() => {
+    folderCountriesRef.current = new Set(Object.keys(driveImages))
+    const refs = sceneRef.current
+    if (!refs) return
+    if (phase !== 'interactive') return
+    refs.pinGroups.forEach((group, pinId) => {
+      group.visible = folderCountriesRef.current.has(pinId)
+    })
+  }, [driveImages, phase])
 
   // Get images for selected pin
   const driveImgs = selectedPin ? (driveImages[selectedPin] || []) : []

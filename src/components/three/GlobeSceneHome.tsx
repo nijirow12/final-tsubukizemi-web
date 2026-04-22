@@ -458,11 +458,12 @@ export default function GlobeSceneHome() {
     backLight.position.set(-5, -2, -5)
     scene.add(backLight)
 
-    // Pins — visible from the start
+    // Pins — hidden until we know which countries have a Drive folder.
+    // (see the `driveImages` useEffect below for the visibility sync)
     const pinGroups = new Map<CountryId, THREE.Group>()
     for (const [id, coord] of Object.entries(PIN_COORDINATES)) {
       const pin = createPinMesh(coord.lat, coord.lng, id)
-      pin.visible = true
+      pin.visible = false
       earth.add(pin)
       pinGroups.set(id as CountryId, pin)
     }
@@ -612,6 +613,16 @@ export default function GlobeSceneHome() {
       .then(() => setAllImagesLoaded(true))
       .catch(() => setDriveLoading(false))
   }, [])
+
+  // --- Show only pins that have a Drive folder ---
+  useEffect(() => {
+    const refs = sceneRef.current
+    if (!refs) return
+    const countriesWithFolders = new Set(Object.keys(driveImages))
+    refs.pinGroups.forEach((group, pinId) => {
+      group.visible = countriesWithFolders.has(pinId)
+    })
+  }, [driveImages])
 
   const driveImgs = selectedPin ? (driveImages[selectedPin] || []) : []
   const pinImages = driveImgs.map((d) => ({ url: d.url, permalink: '' }))
