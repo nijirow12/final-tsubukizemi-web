@@ -142,6 +142,7 @@ function PhotoBurst({
   selectedPin: CountryId
   pinImages: { url: string; permalink: string }[]
 }) {
+  const { lang } = useLanguage()
 
   // ピンが変わるたびにランダムに20枚抽出（keyでremountされるので毎回実行）
   const isMobile = typeof window !== 'undefined' && window.innerWidth < 768
@@ -179,7 +180,7 @@ function PhotoBurst({
             </span>
             {selectedPin !== 'japan' && (
               <span className="text-white/75 text-[clamp(0.65rem,1vw,0.8rem)] tracking-[0.1em]">
-                approx. {distanceFromJapanKm(PIN_COORDINATES[selectedPin].lat, PIN_COORDINATES[selectedPin].lng).toLocaleString()} km from Japan
+                {{ ja: '日本から約', en: 'approx.', zh: '距日本约' }[lang]} {distanceFromJapanKm(PIN_COORDINATES[selectedPin].lat, PIN_COORDINATES[selectedPin].lng).toLocaleString()} {{ ja: 'km', en: 'km from Japan', zh: 'km' }[lang]}
               </span>
             )}
           </div>
@@ -217,7 +218,7 @@ function PhotoBurst({
             <rect x="3" y="3" width="7" height="7" /><rect x="14" y="3" width="7" height="7" /><rect x="3" y="14" width="7" height="7" /><rect x="14" y="14" width="7" height="7" />
           </svg>
           <span className="text-[0.82rem] font-semibold text-[#0f172a] tracking-[0.04em]">
-            View all ({pinImages.length} photos)
+            {{ ja: `もっと見る (${pinImages.length}枚)`, en: `View all (${pinImages.length} photos)`, zh: `查看全部 (${pinImages.length}张)` }[lang]}
           </span>
         </button>
       )}
@@ -232,7 +233,7 @@ function PhotoBurst({
                 {PIN_COORDINATES[selectedPin].labelJa}
               </h2>
               <p className="text-[0.75rem] md:text-[0.8rem] text-[#64748b] tracking-[0.06em]">
-                {PIN_COORDINATES[selectedPin].label} — {pinImages.length} photos
+                {PIN_COORDINATES[selectedPin].label} — {{ ja: `${pinImages.length}枚`, en: `${pinImages.length} photos`, zh: `${pinImages.length}张` }[lang]}
               </p>
             </div>
             <button
@@ -242,7 +243,7 @@ function PhotoBurst({
               <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" className="text-[#64748b]">
                 <line x1="18" y1="6" x2="6" y2="18" /><line x1="6" y1="6" x2="18" y2="18" />
               </svg>
-              <span className="text-[0.75rem] md:text-[0.8rem] font-medium text-[#475569]">Close</span>
+              <span className="text-[0.75rem] md:text-[0.8rem] font-medium text-[#475569]">{{ ja: '閉じる', en: 'Close', zh: '关闭' }[lang]}</span>
             </button>
           </div>
 
@@ -802,7 +803,7 @@ export default function GlobeScene() {
             <path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7zm0 9.5a2.5 2.5 0 1 1 0-5 2.5 2.5 0 0 1 0 5z" fill="currentColor"/>
           </svg>
           <span className="text-[0.82rem] font-semibold text-[#0f172a] tracking-[0.04em]">
-            Click a pin to see activity photos
+            {{ ja: 'ピンをクリックして活動写真を見る', en: 'Click a pin to see activity photos', zh: '点击图钉查看活动照片' }[lang]}
           </span>
         </div>
       )}
